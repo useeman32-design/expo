@@ -1,277 +1,140 @@
 import { useMemo, useState } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 
-import { Background } from '@/components/Background';
-import {
-  AppHeader,
-  Chip,
-  GlassCard,
-  SectionHeader,
-} from '@/components/ui';
+import { ScreenHeader, Card, Chip } from '@/components/primitives';
 import { StockRow } from '@/components/StockRow';
-import { SECTORS, STOCKS } from '@/data/stocks';
-import { C, FONT, R, S } from '@/theme';
+import { IndexCard } from '@/components/IndexCard';
+import {
+  getGainers,
+  getIndices,
+  getLosers,
+  getMostActive,
+  getStocks,
+  getTrending,
+  searchStocks,
+} from '@/services/marketData';
+import { C, F, R, S } from '@/theme';
 
-type MarketFilter = 'All' | 'NGX' | 'US';
+const TABS = ['Trending', 'Top Gainers', 'Top Losers', 'Most Active'] as const;
+type Tab = (typeof TABS)[number];
 
 export default function MarketsScreen() {
-  const insets = useSafeAreaInsets();
-  const [market, setMarket] = useState<MarketFilter>('All');
-  const [halal, setHalal] = useState(false);
-  const [sector, setSector] = useState('All');
+  const [tab, setTab] = useState<Tab>('Trending');
   const [q, setQ] = useState('');
+  const indices = useMemo(() => getIndices().slice(0, 3), []);
 
   const list = useMemo(() => {
-    return STOCKS.filter((s) => {
-      if (market !== 'All' && s.market !== market) return false;
-      if (halal && !s.sharia) return false;
-      if (sector !== 'All' && s.sector !== sector) return false;
-      if (q) {
-        const hay = `${s.ticker} ${s.name}`.toLowerCase();
-        if (!hay.includes(q.toLowerCase())) return false;
-      }
-      return true;
-    });
-  }, [market, halal, sector, q]);
-
-  const segments: MarketFilter[] = ['All', 'NGX', 'US'];
+    if (q.trim()) return searchStocks(q);
+    switch (tab) {
+      case 'Trending':
+        return getTrending(20);
+      case 'Top Gainers':
+        return getGainers(20);
+      case 'Top Losers':
+        return getLosers(20);
+      case 'Most Active':
+        return getMostActive(20);
+      default:
+        return getStocks();
+    }
+  }, [tab, q]);
 
   return (
-    <Background>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 130 }}
-      >
-        <AppHeader
-          title="Markets"
-          subtitle="NGX & global stocks"
-          showBack
-        />
+    <View style={styles.screen}>
+      <StatusBar style="dark" />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 110 }}>
+        <ScreenHeader title="Markets" subtitle="Track Nigerian & global stocks" />
 
-        {/* Search */}
-        <View style={{ paddingHorizontal: S.xl }}>
+        {/* search */}
+        <View style={{ paddingHorizontal: S.xl, marginTop: S.sm }}>
           <View style={styles.search}>
             <Text style={styles.searchIcon}>⌕</Text>
             <TextInput
               value={q}
               onChangeText={setQ}
-              placeholder="Search MTN, Dangote, AAPL…"
-              placeholderTextColor={C.textFaint}
+              placeholder="Search stocks, companies and ETFs"
+              placeholderTextColor={C.faint}
               style={styles.searchInput}
             />
           </View>
         </View>
 
-        {/* Market segment + Halal toggle */}
-        <View style={styles.controls}>
-          <View style={styles.segment}>
-            {segments.map((m) => (
-              <Pressable
-                key={m}
-                onPress={() => setMarket(m)}
-                style={[
-                  styles.segmentItem,
-                  market === m && styles.segmentItemActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.segmentText,
-                    market === m && styles.segmentTextActive,
-                  ]}
-                >
-                  {m}
-                </Text>
-              </Pressable>
+        {/* indices */}
+        <View style={{ paddingHorizontal: S.xl, marginTop: S.lg }}>
+          <View style={styles.indexRow}>
+            {indices.map((ix) => (
+              <IndexCard key={ix.id} index={ix} />
             ))}
           </View>
         </View>
 
-        <Pressable
-          style={styles.halalRow}
-          onPress={() => setHalal((v) => !v)}
-        >
-          <View style={styles.halalLeft}>
-            <Text style={styles.halalIcon}>☪</Text>
-            <View>
-              <Text style={styles.halalTitle}>Halal only</Text>
-              <Text style={styles.halalSub}>
-                Filter out riba (interest-based) stocks
-              </Text>
-            </View>
-          </View>
-          <View style={[styles.toggle, halal && styles.toggleOn]}>
-            <View style={[styles.knob, halal && styles.knobOn]} />
-          </View>
-        </Pressable>
+        {/* tabs */}
+        {!q.trim() ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{ marginTop: S.lg }}
+            contentContainerStyle={{ paddingHorizontal: S.xl }}
+          >
+            {TABS.map((t) => (
+              <Chip key={t} label={t} active={tab === t} onPress={() => setTab(t)} />
+            ))}
+          </ScrollView>
+        ) : null}
 
-        {/* Sectors */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.sectors}
-          contentContainerStyle={{ paddingHorizontal: S.xl }}
-        >
-          {SECTORS.map((s) => (
-            <Chip
-              key={s}
-              label={s}
-              active={sector === s}
-              onPress={() => setSector(s)}
-            />
-          ))}
-        </ScrollView>
-
-        {/* List */}
+        {/* list */}
         <View style={{ paddingHorizontal: S.xl, marginTop: S.lg }}>
-          <SectionHeader
-            title={`${list.length} ${list.length === 1 ? 'stock' : 'stocks'}`}
-            ha={halal ? 'Tsabta · Halal kawai' : 'Duk wani'}
-          />
-          <GlassCard style={styles.listCard}>
-            <View style={{ paddingHorizontal: 16 }}>
-              {list.map((s, i) => (
-                <StockRow
-                  key={s.id}
-                  stock={s}
-                  showHalal
-                  last={i === list.length - 1}
-                />
-              ))}
-              {list.length === 0 ? (
-                <Text style={styles.empty}>No stocks match your filters.</Text>
-              ) : null}
-            </View>
-          </GlassCard>
-          <Text style={styles.disclaimer}>
-            Demo data for illustration only — not live quotes or advice.
+          <Card pad={S.lg} style={{ paddingHorizontal: S.lg }}>
+            {list.length ? (
+              list.map((s, i) => (
+                <StockRow key={s.id} stock={s} last={i === list.length - 1} />
+              ))
+            ) : (
+              <Text style={styles.empty}>No stocks found for “{q}”.</Text>
+            )}
+          </Card>
+          <Text style={styles.note}>
+            Nigerian Exchange (NGX) stocks are shown first. Demo data — not live quotes.
           </Text>
         </View>
-        <View style={{ height: insets.bottom }} />
       </ScrollView>
-    </Background>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.canvas },
   search: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: C.glass,
+    backgroundColor: C.white,
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: C.hairline,
     borderRadius: R.md,
     paddingHorizontal: 14,
     height: 50,
   },
-  searchIcon: { color: C.textFaint, fontSize: 20, marginRight: 10 },
+  searchIcon: { color: C.faint, fontSize: 20, marginRight: 10 },
   searchInput: {
     flex: 1,
-    color: C.text,
-    fontFamily: FONT.sans,
+    color: C.ink,
+    fontFamily: F.sans,
     fontSize: 15,
   },
-  controls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: S.xl,
-    marginTop: S.md,
-  },
-  segment: {
-    flexDirection: 'row',
-    backgroundColor: C.glass,
-    borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: R.pill,
-    padding: 4,
-  },
-  segmentItem: {
-    paddingVertical: 8,
-    paddingHorizontal: 18,
-    borderRadius: R.pill,
-  },
-  segmentItemActive: {
-    backgroundColor: C.accent,
-  },
-  segmentText: {
-    color: C.textMuted,
-    fontFamily: FONT.sans,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  segmentTextActive: {
-    color: '#04140E',
-  },
-  halalRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginHorizontal: S.xl,
-    marginTop: S.md,
-    backgroundColor: halalCardBg(),
-    borderWidth: 1,
-    borderColor: C.borderStrong,
-    borderRadius: R.md,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  halalLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  halalIcon: { color: C.accent, fontSize: 22 },
-  halalTitle: {
-    color: C.text,
-    fontFamily: FONT.sans,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  halalSub: {
-    color: C.textMuted,
-    fontFamily: FONT.sans,
-    fontSize: 12,
-  },
-  toggle: {
-    width: 50,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    padding: 3,
-    justifyContent: 'center',
-  },
-  toggleOn: { backgroundColor: C.accent },
-  knob: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    alignSelf: 'flex-start',
-  },
-  knobOn: { alignSelf: 'flex-end' },
-  sectors: { marginTop: S.lg, flexGrow: 0 },
-  listCard: { paddingVertical: 4 },
+  indexRow: { flexDirection: 'row', gap: S.md },
   empty: {
-    color: C.textMuted,
-    fontFamily: FONT.sans,
+    color: C.muted,
+    fontFamily: F.sans,
     fontSize: 14,
     textAlign: 'center',
     paddingVertical: 30,
   },
-  disclaimer: {
-    color: C.textFaint,
-    fontFamily: FONT.sans,
+  note: {
+    color: C.faint,
+    fontFamily: F.sans,
     fontSize: 11,
     textAlign: 'center',
-    marginTop: 12,
+    marginTop: S.md,
   },
 });
-
-function halalCardBg() {
-  return 'rgba(34,229,154,0.08)';
-}

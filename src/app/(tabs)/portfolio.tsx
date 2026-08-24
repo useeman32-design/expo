@@ -2,229 +2,228 @@ import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 
-import { Background } from '@/components/Background';
-import {
-  AppHeader,
-  ChangePill,
-  GlassCard,
-  SectionHeader,
-  StockLogo,
-} from '@/components/ui';
-import { HOLDINGS, getPortfolio } from '@/data/stocks';
-import { C, FONT, R, S } from '@/theme';
-import { money, pct, NGN_PER_USD } from '@/utils';
-
-interface Row {
-  id: string;
-  ticker: string;
-  name: string;
-  color: string;
-  shares: number;
-  value: number;
-  pl: number;
-  plPct: number;
-  portion: number;
-}
+import { Card, ChangePill, ScreenHeader, SectionTitle, Stat, StockLogo } from '@/components/primitives';
+import { getHoldings, getPortfolio } from '@/services/portfolio';
+import { C, F, R, S, SH } from '@/theme';
+import { money, pct } from '@/utils';
 
 export default function PortfolioScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
-  const portfolio = useMemo(() => getPortfolio(), []);
-
-  const rows = useMemo<Row[]>(() => {
-    const built = HOLDINGS.map((h) => {
-      const s = STOCKS_BY_ID[h.stockId]!;
-      const fx = s.currency === '$' ? NGN_PER_USD : 1;
-      const value = s.price * h.shares * fx;
-      const pl = (s.price - h.avgPrice) * h.shares * fx;
-      return {
-        id: s.id,
-        ticker: s.ticker,
-        name: s.name,
-        color: s.color,
-        shares: h.shares,
-        value,
-        pl,
-        plPct: h.avgPrice > 0 ? (s.price / h.avgPrice - 1) * 100 : 0,
-        portion: 0,
-      };
-    });
-    const total = built.reduce((a, b) => a + b.value, 0);
-    built.forEach((r) => (r.portion = total > 0 ? r.value / total : 0));
-    return built.sort((a, b) => b.value - a.value);
-  }, []);
+  const insets = useSafeAreaInsets();
+  const p = useMemo(() => getPortfolio(), []);
+  const holdings = useMemo(() => getHoldings(), []);
 
   return (
-    <Background>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 130 }}
-      >
-        <AppHeader title="Portfolio" subtitle="Your holdings" />
+    <View style={styles.screen}>
+      <StatusBar style="dark" />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 110 }}>
+        <ScreenHeader
+          title="Portfolio"
+          subtitle="Your investments"
+          right={
+            <Pressable
+              onPress={() => router.push('/orders')}
+              style={styles.ordersBtn}
+            >
+              <Ionicons name="receipt-outline" size={16} color={C.green} />
+              <Text style={styles.ordersText}>Orders</Text>
+            </Pressable>
+          }
+        />
 
-        {/* Summary */}
-        <View style={{ paddingHorizontal: S.xl }}>
-          <GlassCard variant="green" style={styles.summary}>
-            <Text style={styles.sumLabel}>Total dukiya</Text>
-            <Text style={styles.sumValue}>{money(portfolio.value)}</Text>
+        {/* summary */}
+        <View style={{ paddingHorizontal: S.xl, marginTop: S.sm }}>
+          <Card pad={S.xl} radius={R.xl}>
+            <Text style={styles.sumLabel}>Total Portfolio Value</Text>
+            <Text style={styles.sumValue}>{money(p.totalValue)}</Text>
             <View style={styles.sumChange}>
-              <ChangePill value={portfolio.plPct} />
+              <ChangePill value={p.todayPct} />
               <Text style={styles.sumChangeText}>
-                {money(portfolio.pl)} all-time
+                +{money(p.todayPl)} today
               </Text>
             </View>
 
-            {/* Allocation bar */}
+            <View style={styles.divider} />
+
+            <View style={styles.grid}>
+              <Stat label="Total Return" value={`+${money(p.totalReturn)}`} valueColor={C.positive} />
+              <View style={styles.gridLine} />
+              <View>
+                <Text style={styles.miniLabel}>Return %</Text>
+                <Text style={[styles.miniValue, { color: C.positive }]}>
+                  {pct(p.totalReturnPct)}
+                </Text>
+              </View>
+            </View>
+            <View style={[styles.grid, { marginTop: S.lg }]}>
+              <Stat label="Cash Balance" value={money(p.cash)} />
+              <View style={styles.gridLine} />
+              <View>
+                <Text style={styles.miniLabel}>Buying Power</Text>
+                <Text style={styles.miniValue}>{money(p.cash)}</Text>
+              </View>
+            </View>
+          </Card>
+        </View>
+
+        {/* allocation */}
+        <View style={{ paddingHorizontal: S.xl, marginTop: S.xxl }}>
+          <SectionTitle title="Allocation" />
+          <Card pad={S.lg}>
             <View style={styles.allocBar}>
-              {rows.map((r) => (
+              {holdings.map((h) => (
                 <View
-                  key={r.id}
+                  key={h.stockId}
                   style={{
-                    flex: r.portion,
-                    backgroundColor: r.color,
+                    flex: h.portion,
+                    backgroundColor: h.color,
                     marginHorizontal: 1,
-                    borderRadius: 3,
-                    height: 8,
+                    borderRadius: 4,
+                    height: 10,
                   }}
                 />
               ))}
             </View>
             <View style={styles.allocLegend}>
-              {rows.slice(0, 3).map((r) => (
-                <View key={r.id} style={styles.legendItem}>
-                  <View
-                    style={[styles.legendDot, { backgroundColor: r.color }]}
-                  />
-                  <Text style={styles.legendText}>{r.ticker}</Text>
+              {holdings.slice(0, 4).map((h) => (
+                <View key={h.stockId} style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: h.color }]} />
+                  <Text style={styles.legendText}>{h.ticker}</Text>
                 </View>
               ))}
-              <Text style={styles.legendMore}>+{Math.max(0, rows.length - 3)}</Text>
             </View>
-          </GlassCard>
+          </Card>
         </View>
 
-        {/* Holdings */}
-        <View style={{ paddingHorizontal: S.xl, marginTop: S.xxxl }}>
-          <SectionHeader title="Holdings" ha="Zuba jari" />
-          <GlassCard style={styles.listCard}>
-            <View style={{ paddingHorizontal: 16 }}>
-              {rows.map((r, i) => {
-                const up = r.pl >= 0;
-                return (
-                  <Pressable
-                    key={r.id}
-                    onPress={() => router.push(`/stock/${r.id}`)}
-                    style={[
-                      styles.holding,
-                      i < rows.length - 1 && styles.holdingDiv,
-                    ]}
-                  >
-                    <StockLogo ticker={r.ticker} color={r.color} size={40} />
-                    <View style={styles.holdingInfo}>
-                      <Text style={styles.holdingTicker}>{r.ticker}</Text>
-                      <Text style={styles.holdingShares}>
-                        {r.shares.toLocaleString()} shares
-                      </Text>
-                    </View>
-                    <View style={styles.holdingRight}>
-                      <Text style={styles.holdingValue}>{money(r.value)}</Text>
-                      <Text
-                        style={[
-                          styles.holdingPl,
-                          { color: up ? C.positive : C.negative },
-                        ]}
-                      >
-                        {pct(r.plPct)}
-                      </Text>
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </GlassCard>
+        {/* holdings */}
+        <View style={{ paddingHorizontal: S.xl, marginTop: S.xxl }}>
+          <SectionTitle title="Holdings" />
+          <Card pad={S.lg} style={{ paddingHorizontal: S.lg }}>
+            {holdings.map((h, i) => {
+              const up = h.pl >= 0;
+              return (
+                <Pressable
+                  key={h.stockId}
+                  onPress={() => router.push(`/stock/${h.stockId}`)}
+                  style={[styles.holding, i < holdings.length - 1 && styles.holdingDiv]}
+                >
+                  <StockLogo ticker={h.ticker} color={h.color} size={40} />
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={styles.hTicker}>{h.ticker}</Text>
+                    <Text style={styles.hShares}>
+                      {h.shares.toLocaleString()} sh · Avg ₦{h.avgPrice.toFixed(2)}
+                    </Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end', gap: 2 }}>
+                    <Text style={styles.hValue}>{money(h.value)}</Text>
+                    <Text style={[styles.hPl, { color: up ? C.positive : C.negative }]}>
+                      {pct(h.plPct)}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </Card>
         </View>
-
         <View style={{ height: insets.bottom }} />
       </ScrollView>
-    </Background>
+    </View>
   );
 }
 
-// quick lookup for stocks by id
-import { STOCKS } from '@/data/stocks';
-const STOCKS_BY_ID = Object.fromEntries(STOCKS.map((s) => [s.id, s]));
-
 const styles = StyleSheet.create({
-  summary: { padding: 22, gap: 6 },
-  sumLabel: {
-    color: C.textMuted,
-    fontFamily: FONT.sans,
+  screen: { flex: 1, backgroundColor: C.canvas },
+  ordersBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: C.greenSoft,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: R.pill,
+  },
+  ordersText: {
+    color: C.green,
+    fontFamily: F.sans,
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '700',
+  },
+  sumLabel: {
+    color: C.muted,
+    fontFamily: F.sans,
+    fontSize: 13.5,
+    fontWeight: '600',
   },
   sumValue: {
-    color: C.text,
-    fontFamily: FONT.sans,
-    fontSize: 36,
+    color: C.ink,
+    fontFamily: F.sans,
+    fontSize: 34,
     fontWeight: '800',
     letterSpacing: -1,
+    marginTop: 2,
   },
-  sumChange: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },
+  sumChange: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 6 },
   sumChangeText: {
-    color: C.textMuted,
-    fontFamily: FONT.sans,
+    color: C.muted,
+    fontFamily: F.sans,
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
   },
-  allocBar: {
-    flexDirection: 'row',
-    marginTop: 18,
-    marginBottom: 10,
-  },
-  allocLegend: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  legendDot: { width: 9, height: 9, borderRadius: 3 },
-  legendText: {
-    color: C.textMuted,
-    fontFamily: FONT.sans,
+  divider: { height: 1, backgroundColor: C.hairline, marginVertical: S.lg },
+  grid: { flexDirection: 'row', alignItems: 'center' },
+  gridLine: { width: 1, height: 30, backgroundColor: C.hairline, marginHorizontal: S.md },
+  miniLabel: {
+    color: C.faint,
+    fontFamily: F.sans,
     fontSize: 12,
     fontWeight: '600',
   },
-  legendMore: {
-    color: C.textFaint,
-    fontFamily: FONT.sans,
-    fontSize: 12,
+  miniValue: {
+    color: C.ink,
+    fontFamily: F.mono,
+    fontSize: 15,
+    fontWeight: '800',
+    marginTop: 2,
   },
-  listCard: { paddingVertical: 4 },
+  allocBar: { flexDirection: 'row', marginBottom: S.md },
+  allocLegend: { flexDirection: 'row', flexWrap: 'wrap', gap: S.md },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  legendDot: { width: 10, height: 10, borderRadius: 3 },
+  legendText: {
+    color: C.ink2,
+    fontFamily: F.sans,
+    fontSize: 12.5,
+    fontWeight: '600',
+  },
   holding: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: S.md,
     gap: 12,
   },
-  holdingDiv: { borderBottomWidth: 1, borderBottomColor: C.border },
-  holdingInfo: { flex: 1, gap: 2 },
-  holdingTicker: {
-    color: C.text,
-    fontFamily: FONT.sans,
+  holdingDiv: { borderBottomWidth: 1, borderBottomColor: C.hairlineSoft },
+  hTicker: {
+    color: C.ink,
+    fontFamily: F.sans,
     fontSize: 15,
     fontWeight: '700',
   },
-  holdingShares: {
-    color: C.textMuted,
-    fontFamily: FONT.sans,
-    fontSize: 12,
+  hShares: {
+    color: C.muted,
+    fontFamily: F.sans,
+    fontSize: 12.5,
   },
-  holdingRight: { alignItems: 'flex-end', gap: 2 },
-  holdingValue: {
-    color: C.text,
-    fontFamily: FONT.mono,
-    fontSize: 15,
+  hValue: {
+    color: C.ink,
+    fontFamily: F.mono,
+    fontSize: 14.5,
     fontWeight: '700',
   },
-  holdingPl: {
-    fontFamily: FONT.mono,
+  hPl: {
+    fontFamily: F.mono,
     fontSize: 12,
     fontWeight: '700',
   },

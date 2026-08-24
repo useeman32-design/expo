@@ -1,0 +1,70 @@
+import type { Order } from '@/types';
+
+/** Demo order history. In production this would come from /api/orders. */
+export const ORDERS: Order[] = [
+  {
+    id: 'o1',
+    stockId: 'mtnn',
+    side: 'Buy',
+    type: 'Limit',
+    qty: 10,
+    price: 275,
+    status: 'Open',
+    time: 'Today, 11:24 AM',
+  },
+  {
+    id: 'o2',
+    stockId: 'gtco',
+    side: 'Sell',
+    type: 'Market',
+    qty: 20,
+    price: 53,
+    status: 'Completed',
+    time: 'Today, 09:10 AM',
+  },
+  {
+    id: 'o3',
+    stockId: 'dangcem',
+    side: 'Buy',
+    type: 'Limit',
+    qty: 50,
+    price: 335,
+    status: 'Open',
+    time: 'Yesterday, 03:48 PM',
+  },
+  {
+    id: 'o4',
+    stockId: 'aapl',
+    side: 'Buy',
+    type: 'Market',
+    qty: 2,
+    price: 229.8,
+    status: 'Completed',
+    time: 'Yesterday, 10:02 AM',
+  },
+  {
+    id: 'o5',
+    stockId: 'buacement',
+    side: 'Sell',
+    type: 'Limit',
+    qty: 100,
+    price: 99,
+    status: 'Cancelled',
+    time: '21 Aug, 02:15 PM',
+  },
+  {
+    id: 'o6',
+    stockId: 'jaizbank',
+    side: 'Buy',
+    type: 'Market',
+    qty: 2000,
+    price: 6.4,
+    status: 'Completed',
+    time: '20 Aug, 11:30 AM',
+  },
+];
+
+export function getOrders(status: 'All' | Order['status'] = 'All'): Order[] {
+  if (status === 'All') return ORDERS;
+  return ORDERS.filter((o) => o.status === status);
+}

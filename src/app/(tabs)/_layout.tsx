@@ -1,52 +1,39 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 
-import { C, FONT, SHADOW } from '@/theme';
+import { C, F, R, S, SH } from '@/theme';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
-interface TabRoute {
+const TABS: { name: string; label: string; icon: IconName; iconActive: IconName }[] = [
+  { name: 'index', label: 'Home', icon: 'home-outline', iconActive: 'home' },
+  { name: 'markets', label: 'Markets', icon: 'trending-up-outline', iconActive: 'trending-up' },
+  { name: 'portfolio', label: 'Portfolio', icon: 'briefcase-outline', iconActive: 'briefcase' },
+  { name: 'learn', label: 'Learn', icon: 'book-outline', iconActive: 'book' },
+  { name: 'profile', label: 'Profile', icon: 'person-outline', iconActive: 'person' },
+];
+
+interface RouteLike {
   key: string;
   name: string;
 }
-interface TabState {
-  index: number;
-  routes: TabRoute[];
-}
-interface TabNavigation {
+interface NavLike {
   emit: (e: { type: string; target: string; canPreventDefault: boolean }) => {
     defaultPrevented: boolean;
   };
   navigate: (name: string) => void;
 }
 interface TabBarProps {
-  state: TabState;
-  navigation: TabNavigation;
+  state: { index: number; routes: RouteLike[] };
+  navigation: NavLike;
+  insets?: { bottom: number };
 }
 
-const TABS: {
-  name: string;
-  label: string;
-  icon: IconName;
-  iconActive: IconName;
-}[] = [
-  { name: 'index', label: 'Home', icon: 'home-outline', iconActive: 'home' },
-  { name: 'markets', label: 'Markets', icon: 'trending-up-outline', iconActive: 'trending-up' },
-  { name: 'learn', label: 'Learn', icon: 'book-outline', iconActive: 'book' },
-  { name: 'portfolio', label: 'Portfolio', icon: 'briefcase-outline', iconActive: 'briefcase' },
-];
-
-function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
+function FloatingTabBar({ state, navigation }: TabBarProps) {
   return (
-    <View style={styles.wrap}>
-      <BlurView
-        intensity={45}
-        tint="dark"
-        experimentalBlurMethod
-        style={styles.bar}
-      >
+    <View style={styles.wrap} pointerEvents="box-none">
+      <View style={styles.bar}>
         {state.routes.map((route, i) => {
           const tab = TABS.find((t) => t.name === route.name)!;
           const active = i === state.index;
@@ -57,9 +44,10 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
               canPreventDefault: true,
             });
             if (!active && !event.defaultPrevented) {
-              navigation.navigate(route.name as never);
+              navigation.navigate(route.name);
             }
           };
+          const color = active ? C.green : C.faint;
           return (
             <Pressable
               key={route.key}
@@ -67,25 +55,18 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
               style={styles.item}
               android_ripple={{ color: 'transparent' }}
             >
-              <View style={[styles.pill, active && styles.pillActive]}>
+              <View style={[styles.iconWrap, active && { backgroundColor: C.greenSoft }]}>
                 <Ionicons
                   name={(active ? tab.iconActive : tab.icon) as IconName}
-                  size={22}
-                  color={active ? C.accent : C.textFaint}
+                  size={21}
+                  color={color}
                 />
-                <Text
-                  style={[
-                    styles.label,
-                    { color: active ? C.accent : C.textFaint },
-                  ]}
-                >
-                  {tab.label}
-                </Text>
               </View>
+              <Text style={[styles.label, { color }]}>{tab.label}</Text>
             </Pressable>
           );
         })}
-      </BlurView>
+      </View>
     </View>
   );
 }
@@ -94,12 +75,13 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{ headerShown: false }}
-      tabBar={(props) => <FloatingTabBar {...props} />}
+      tabBar={(props) => <FloatingTabBar {...(props as TabBarProps)} />}
     >
       <Tabs.Screen name="index" />
       <Tabs.Screen name="markets" />
-      <Tabs.Screen name="learn" />
       <Tabs.Screen name="portfolio" />
+      <Tabs.Screen name="learn" />
+      <Tabs.Screen name="profile" />
     </Tabs>
   );
 }
@@ -107,38 +89,34 @@ export default function TabsLayout() {
 const styles = StyleSheet.create({
   wrap: {
     position: 'absolute',
-    left: 18,
-    right: 18,
-    bottom: 22,
+    left: S.lg,
+    right: S.lg,
+    bottom: S.xl,
   },
   bar: {
     flexDirection: 'row',
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: C.borderStrong,
-    overflow: 'hidden',
-    ...SHADOW.float,
+    backgroundColor: C.white,
+    borderRadius: R.xxl,
+    paddingVertical: 10,
+    paddingHorizontal: S.sm,
+    ...SH.float,
   },
   item: {
     flex: 1,
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 2,
   },
-  pill: {
+  iconWrap: {
+    width: 48,
+    height: 34,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    paddingVertical: 8,
-    borderRadius: 24,
-  },
-  pillActive: {
-    backgroundColor: C.glassGreen,
-    ...SHADOW.glow,
   },
   label: {
-    fontFamily: FONT.sans,
+    fontFamily: F.sans,
     fontSize: 10.5,
     fontWeight: '700',
-    letterSpacing: 0.2,
   },
 });

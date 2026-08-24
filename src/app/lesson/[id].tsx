@@ -1,216 +1,232 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Background } from '@/components/Background';
-import { AppHeader, GlassCard, PrimaryButton, SectionHeader } from '@/components/ui';
+import { Button, Card, ScreenHeader, SectionTitle } from '@/components/primitives';
 import {
-  LESSONS,
-  courseById,
-  lessonById,
-  lessonsForCourse,
-} from '@/data/lessons';
-import { C, FONT, R, S } from '@/theme';
+  COURSES,
+  getCourse,
+  getLessonByCourse,
+} from '@/services/learning';
+import { C, F, R, S } from '@/theme';
 
 export default function LessonDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const lesson = lessonById(String(id));
+  const course = getCourse(String(id));
+  const lesson = getLessonByCourse(String(id));
   const [done, setDone] = useState(false);
 
-  if (!lesson) {
+  if (!lesson || !course) {
     return (
-      <Background>
-        <AppHeader title="Not found" showBack />
-        <Text style={{ color: C.textMuted, padding: S.xl }}>
-          This lesson could not be found.
-        </Text>
-      </Background>
+      <View style={styles.screen}>
+        <ScreenHeader title="Lesson" showBack />
+        <Text style={{ color: C.muted, padding: S.xl }}>Lesson not found.</Text>
+      </View>
     );
   }
 
-  const course = courseById(lesson.courseId);
-  const inCourse = lessonsForCourse(lesson.courseId);
-  const pos = inCourse.findIndex((l) => l.id === lesson.id) + 1;
-  const flatIdx = LESSONS.findIndex((l) => l.id === lesson.id);
-  const next = LESSONS[flatIdx + 1];
+  const idx = COURSES.findIndex((c) => c.id === course.id);
+  const next = COURSES[idx + 1];
 
   return (
-    <Background>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
-      >
-        <AppHeader title={course?.title ?? 'Lesson'} subtitle={course?.haTitle} showBack />
+    <View style={styles.screen}>
+      <StatusBar style="dark" />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+        <ScreenHeader title={course.category} subtitle="Lesson" showBack />
 
-        <View style={{ paddingHorizontal: S.xl }}>
-          {/* Title block */}
-          <View style={styles.titleBlock}>
+        <View style={{ paddingHorizontal: S.xl, marginTop: S.sm }}>
+          <View style={[styles.badge, { backgroundColor: `${course.color}1F` }]}>
+            <Ionicons name={course.icon as never} size={15} color={course.color} />
+            <Text style={[styles.badgeText, { color: course.color }]}>
+              {course.level} · {lesson.minutes} min read
+            </Text>
+          </View>
+          <Text style={styles.title}>{lesson.title}</Text>
+
+          {/* progress */}
+          <View style={styles.bar}>
             <View
-              style={[styles.courseBadge, { backgroundColor: (course?.color ?? C.accent) + '22' }]}
-            >
-              <Ionicons name={(course?.icon ?? 'book') as never} size={18} color={course?.color ?? C.accent} />
-              <Text style={[styles.courseBadgeText, { color: course?.color ?? C.accent }]}>
-                Lesson {pos} of {inCourse.length} · {lesson.minutes} min
+              style={[styles.barFill, { width: `${Math.max(course.progress, done ? 100 : 0)}%`, backgroundColor: course.color }]}
+            />
+          </View>
+          <Text style={styles.progressText}>
+            {done ? 100 : course.progress}% complete
+          </Text>
+        </View>
+
+        {/* body */}
+        <View style={{ paddingHorizontal: S.xl, marginTop: S.xxl }}>
+          <Card pad={S.lg} radius={R.xl}>
+            {lesson.body.map((p, i) => (
+              <Text key={i} style={styles.bodyText}>
+                {p}
               </Text>
-            </View>
-            <Text style={styles.lessonTitle}>{lesson.title}</Text>
-            {lesson.haTitle ? (
-              <Text style={styles.lessonHa}>{lesson.haTitle}</Text>
-            ) : null}
-          </View>
+            ))}
+          </Card>
+        </View>
 
-          {/* Body */}
-          <View style={{ marginTop: S.xl }}>
-            <SectionHeader title="Read" ha="Karanta" />
-            <GlassCard style={styles.bodyCard}>
-              {lesson.body.map((p, i) => (
-                <Text key={i} style={styles.bodyText}>
-                  {p}
-                </Text>
-              ))}
-            </GlassCard>
-          </View>
-
-          {/* Takeaways */}
-          <View style={{ marginTop: S.xl }}>
-            <SectionHeader title="Key takeaways" ha="Abubuwan tunawa" />
-            <GlassCard style={styles.takeCard}>
-              {lesson.takeaways.map((t, i) => (
-                <View key={i} style={[styles.takeRow, i < lesson.takeaways.length - 1 && styles.takeDiv]}>
-                  <View style={styles.check}>
-                    <Ionicons name="checkmark" size={14} color="#04140E" />
-                  </View>
-                  <Text style={styles.takeText}>{t}</Text>
+        {/* takeaways */}
+        <View style={{ paddingHorizontal: S.xl, marginTop: S.xxl }}>
+          <SectionTitle title="Key takeaways" />
+          <Card pad={S.lg}>
+            {lesson.takeaways.map((t, i) => (
+              <View
+                key={i}
+                style={[styles.takeRow, i < lesson.takeaways.length - 1 && styles.takeDiv]}
+              >
+                <View style={styles.check}>
+                  <Ionicons name="checkmark" size={13} color={C.white} />
                 </View>
-              ))}
-            </GlassCard>
-          </View>
+                <Text style={styles.takeText}>{t}</Text>
+              </View>
+            ))}
+          </Card>
+        </View>
 
-          {/* Actions */}
+        {/* mark complete */}
+        <View style={{ paddingHorizontal: S.xl, marginTop: S.xxl }}>
           <Pressable
             onPress={() => setDone((v) => !v)}
-            style={({ pressed }) => pressed && { opacity: 0.85 }}
+            style={({ pressed }) => [pressed && { opacity: 0.9 }]}
           >
-            <GlassCard variant={done ? 'green' : 'default'} style={styles.doneCard}>
-                  <View style={[styles.doneCircle, { backgroundColor: done ? C.accent : 'transparent' }]}>
-                    {done ? (
-                      <Ionicons name="checkmark" size={20} color="#04140E" />
-                    ) : null}
-                  </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.doneTitle}>
-                  {done ? 'Lesson complete!' : 'Mark as complete'}
-                </Text>
-                <Text style={styles.doneSub}>
-                  {done ? 'Alhamdulillah — keep the streak going.' : 'Tap when you’ve finished reading.'}
-                </Text>
+            <Card
+              pad={S.lg}
+              radius={R.lg}
+              style={{ backgroundColor: done ? C.greenSoft : C.white }}
+            >
+              <View style={styles.doneRow}>
+                <View style={[styles.doneCircle, { backgroundColor: done ? C.green : 'transparent', borderColor: done ? C.green : C.hairline }]}>
+                  {done ? <Ionicons name="checkmark" size={16} color={C.white} /> : null}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.doneTitle}>
+                    {done ? 'Lesson complete!' : 'Mark as complete'}
+                  </Text>
+                  <Text style={styles.doneSub}>
+                    {done ? 'Well done — keep the streak going.' : 'Tap when you’ve finished reading.'}
+                  </Text>
+                </View>
               </View>
-            </GlassCard>
+            </Card>
           </Pressable>
+        </View>
 
+        {/* next */}
+        <View style={{ paddingHorizontal: S.xl, marginTop: S.lg }}>
           {next ? (
-            <View style={styles.nextRow}>
-              <PrimaryButton
-                label={`Next: ${next.title}`}
-                icon="arrow-forward"
-                onPress={() => router.push(`/lesson/${next.id}`)}
-              />
-            </View>
+            <Button
+              label={`Next: ${next.title}`}
+              icon="arrow-forward"
+              variant="primary"
+              block
+              onPress={() => router.push(`/lesson/${next.id}`)}
+            />
           ) : (
-            <View style={styles.nextRow}>
-              <PrimaryButton label="Back to courses" icon="book" onPress={() => router.push('/learn')} />
-            </View>
+            <Button
+              label="Back to Learn"
+              icon="book"
+              variant="light"
+              block
+              onPress={() => router.push('/learn')}
+            />
           )}
         </View>
       </ScrollView>
-    </Background>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleBlock: { gap: 12 },
-  courseBadge: {
+  screen: { flex: 1, backgroundColor: C.canvas },
+  badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
     borderRadius: R.pill,
   },
-  courseBadgeText: {
-    fontFamily: FONT.sans,
+  badgeText: {
+    fontFamily: F.sans,
     fontSize: 12,
     fontWeight: '700',
   },
-  lessonTitle: {
-    color: C.text,
-    fontFamily: FONT.sans,
-    fontSize: 30,
+  title: {
+    color: C.ink,
+    fontFamily: F.sans,
+    fontSize: 28,
     fontWeight: '800',
     letterSpacing: -0.8,
-    lineHeight: 36,
+    lineHeight: 34,
+    marginTop: S.md,
   },
-  lessonHa: {
-    color: C.accent,
-    fontFamily: FONT.sans,
-    fontSize: 16,
+  bar: {
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: C.canvasAlt,
+    overflow: 'hidden',
+    marginTop: S.lg,
+  },
+  barFill: { height: 7, borderRadius: 4 },
+  progressText: {
+    color: C.muted,
+    fontFamily: F.sans,
+    fontSize: 12,
     fontWeight: '600',
+    marginTop: 6,
   },
-  bodyCard: { padding: 20, gap: 16 },
   bodyText: {
-    color: C.text,
-    fontFamily: FONT.sans,
+    color: C.ink2,
+    fontFamily: F.sans,
     fontSize: 15.5,
     lineHeight: 24,
+    marginBottom: S.md,
   },
-  takeCard: { padding: 18, gap: 4 },
-  takeRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
-  takeDiv: { borderBottomWidth: 1, borderBottomColor: C.border },
+  takeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: S.md,
+  },
+  takeDiv: { borderBottomWidth: 1, borderBottomColor: C.hairlineSoft },
   check: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: C.accent,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: C.green,
     alignItems: 'center',
     justifyContent: 'center',
   },
   takeText: {
     flex: 1,
-    color: C.text,
-    fontFamily: FONT.sans,
+    color: C.ink,
+    fontFamily: F.sans,
     fontSize: 14.5,
     lineHeight: 21,
   },
-  doneCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    padding: 16,
-    marginTop: S.xl,
-  },
+  doneRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   doneCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     borderWidth: 2,
-    borderColor: C.accent,
     alignItems: 'center',
     justifyContent: 'center',
   },
   doneTitle: {
-    color: C.text,
-    fontFamily: FONT.sans,
+    color: C.ink,
+    fontFamily: F.sans,
     fontSize: 15,
     fontWeight: '700',
   },
   doneSub: {
-    color: C.textMuted,
-    fontFamily: FONT.sans,
-    fontSize: 13,
+    color: C.muted,
+    fontFamily: F.sans,
+    fontSize: 12.5,
     marginTop: 1,
   },
-  nextRow: { marginTop: S.lg },
 });

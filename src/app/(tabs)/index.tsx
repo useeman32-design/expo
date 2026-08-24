@@ -1,391 +1,382 @@
 import { useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Dimensions,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
-import { Background } from '@/components/Background';
 import {
   Avatar,
+  Card,
   ChangePill,
-  GlassCard,
-  HalalBadge,
-  IconButton,
-  PrimaryButton,
-  SectionHeader,
-  StockLogo,
-} from '@/components/ui';
-import { Sparkline } from '@/components/Sparkline';
+  IconBtn,
+  LiveDot,
+  SectionTitle,
+} from '@/components/primitives';
+import { Chart } from '@/components/Chart';
 import { StockRow } from '@/components/StockRow';
-import { CASH, STOCKS, getPortfolio } from '@/data/stocks';
-import { GLOSSARY } from '@/data/lessons';
-import { C, FONT, R, S } from '@/theme';
-import { money, pct } from '@/utils';
+import { IndexCard } from '@/components/IndexCard';
+import { LearnCard } from '@/components/LearnCard';
+import { QuickAction } from '@/components/QuickAction';
+import { getStock } from '@/services/marketData';
+import { getIndices } from '@/services/marketData';
+import { getPortfolio } from '@/services/portfolio';
+import {
+  getCourses,
+  getContinueLearning,
+} from '@/services/learning';
+import { C, F, R, S, SH } from '@/theme';
+import { genSpark, money, pct } from '@/utils';
 
-const WATCHLIST = ['mtnn', 'dangcem', 'airtelafri', 'jaizbank', 'seplat'];
+const WATCH = ['mtnn', 'gtco', 'zenith', 'dangcem'];
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const portfolio = useMemo(() => getPortfolio(), []);
-  const word = GLOSSARY[0];
-  const watch = STOCKS.filter((s) => WATCHLIST.includes(s.id));
-  const portfolioSpark = useMemo(
-    () => STOCKS.find((s) => s.id === 'mtnn')!.spark,
-    [],
-  );
+  const indices = useMemo(() => getIndices().slice(0, 3), []);
+  const watch = useMemo(() => WATCH.map((id) => getStock(id)!).filter(Boolean), []);
+  const courses = useMemo(() => getCourses().filter((c) => !c.readTime || c.progress === 0).slice(0, 6), []);
+  const cont = useMemo(() => getContinueLearning(), []);
+  const heroSpark = useMemo(() => genSpark(7, 34, 0.02, 0.006), []);
+
+  const heroH = Math.max(Math.round(Dimensions.get('window').height * 0.34), 300);
 
   return (
-    <Background>
+    <View style={styles.screen}>
+      <StatusBar style="light" />
       <ScrollView
+        bounces
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 130 }}
+        contentContainerStyle={{ paddingBottom: 110 }}
       >
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
-          <View style={styles.headerLeft}>
-            <Avatar initials="YI" size={44} />
-            <View>
-              <Text style={styles.greeting}>Ina kwana, Yusuf 👋</Text>
-              <Text style={styles.greetingSub}>Here’s your portfolio</Text>
-            </View>
-          </View>
-          <IconButton name="notifications-outline" badge />
-        </View>
-
-        {/* Portfolio hero */}
-        <GlassCard variant="green" style={styles.hero}>
-          <View style={styles.heroTop}>
-            <Text style={styles.heroLabel}>Total dukiya · Portfolio value</Text>
-            <HalalBadge compliant />
-          </View>
-          <Text style={styles.heroValue}>{money(portfolio.value)}</Text>
-          <View style={styles.heroChange}>
-            <ChangePill value={portfolio.today} />
-            <Text style={styles.heroChangeText}>
-              {pct(portfolio.today)} today
-            </Text>
-            <View style={{ flex: 1 }} />
-            <Sparkline data={portfolioSpark} width={110} height={36} />
-          </View>
-
-          <View style={styles.heroDivider} />
-          <View style={styles.statsRow}>
-            <View style={styles.stat}>
-              <Text style={styles.statLabel}>All-time P/L</Text>
-              <Text
-                style={[
-                  styles.statValue,
-                  {
-                    color:
-                      portfolio.pl >= 0 ? C.positive : C.negative,
-                  },
-                ]}
-              >
-                {money(portfolio.pl)}
-              </Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.stat}>
-              <Text style={styles.statLabel}>Available cash</Text>
-              <Text style={styles.statValue}>{money(CASH)}</Text>
-            </View>
-          </View>
-
-          <PrimaryButton
-            label="Add money"
-            icon="add-circle"
-            onPress={() => router.push('/markets')}
-            variant="solid"
-          />
-        </GlassCard>
-
-        {/* Quick actions */}
-        <View style={styles.quickRow}>
-          <QuickAction icon="arrow-down-circle" label="Deposit" />
-          <QuickAction icon="add-circle" label="Buy" />
-          <QuickAction
-            icon="swap-vertical"
-            label="Trade"
-            onPress={() => router.push('/markets')}
-          />
-          <QuickAction
-            icon="school"
-            label="Learn"
-            onPress={() => router.push('/learn')}
-          />
-        </View>
-
-        {/* Markets today */}
-        <View style={styles.section}>
-          <SectionHeader
-            title="Markets today"
-            ha="Kasuwar yau"
-            action="See all"
-            onAction={() => router.push('/markets')}
-          />
-          <View style={styles.indexRow}>
-            <IndexCard
-              title="NGX ASI"
-              value="102,340"
-              change={0.87}
-              seed={3}
-            />
-            <IndexCard
-              title="S&P 500"
-              value="5,640"
-              change={0.42}
-              seed={9}
-              usd
-            />
-          </View>
-        </View>
-
-        {/* Watchlist */}
-        <View style={styles.section}>
-          <SectionHeader
-            title="Your watchlist"
-            ha="Lissafin biyayya"
-            action="See all"
-            onAction={() => router.push('/markets')}
-          />
-          <GlassCard style={styles.listCard}>
-            <View style={{ paddingHorizontal: 16 }}>
-              {watch.map((s, i) => (
-                <StockRow
-                  key={s.id}
-                  stock={s}
-                  showHalal
-                  last={i === watch.length - 1}
-                />
-              ))}
-            </View>
-          </GlassCard>
-        </View>
-
-        {/* Word of the day */}
-        <View style={styles.section}>
-          <SectionHeader title="Word of the day" ha="Kalmar rana" />
-          <Pressable
-            onPress={() => router.push('/learn')}
-            style={({ pressed }) => pressed && { opacity: 0.85 }}
-          >
-            <GlassCard style={styles.wordCard}>
-              <View style={styles.wordTop}>
-                <StockLogo
-                  ticker={word.en}
-                  color={C.accent}
-                  size={40}
-                />
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={styles.wordHa}>{word.ha}</Text>
-                  <Text style={styles.wordEn}>{word.en}</Text>
+        {/* ---------- GREEN HERO ---------- */}
+        <LinearGradient
+          colors={[C.hero1, C.hero2, C.hero3]}
+          locations={[0, 0.55, 1]}
+          style={[styles.hero, { height: heroH }]}
+        >
+          <View style={[styles.heroInner, { paddingTop: insets.top + 10 }]}>
+            {/* header */}
+            <View style={styles.heroHeader}>
+              <View style={styles.heroGreet}>
+                <Avatar initials="U" size={46} ring />
+                <View>
+                  <Text style={styles.greetSmall}>Good morning 👋</Text>
+                  <Text style={styles.greetName}>Hi, Usman</Text>
                 </View>
-                <Ionicons name="arrow-forward" size={18} color={C.accent} />
               </View>
-              <Text style={styles.wordMeaning}>{word.meaning}</Text>
-            </GlassCard>
-          </Pressable>
+              <View style={styles.heroIcons}>
+                <IconBtn name="notifications-outline" onPress={() => {}} />
+                <IconBtn name="settings-outline" onPress={() => router.push('/profile')} />
+              </View>
+            </View>
+
+            {/* status pills */}
+            <View style={styles.pillRow}>
+              <View style={styles.solidPill}>
+                <LiveDot color={C.white} />
+                <Text style={styles.solidPillText}>Market Open</Text>
+              </View>
+              <View style={styles.ghostPill}>
+                <Text style={styles.ghostPillText}>NGX</Text>
+              </View>
+              <View style={styles.ghostPill}>
+                <Text style={styles.ghostPillText}>₦ NGN</Text>
+              </View>
+            </View>
+
+            <View style={{ flex: 1 }} />
+
+            {/* portfolio value + chart (lower portion) */}
+            <View style={styles.heroValueBlock}>
+              <Text style={styles.heroLabel}>Total Portfolio Value</Text>
+              <Text style={styles.heroValue}>{money(portfolio.totalValue)}</Text>
+              <View style={styles.heroChangeRow}>
+                <View style={styles.whitePill}>
+                  <Ionicons name="caret-up" size={11} color={C.white} />
+                  <Text style={styles.whitePillText}>{pct(portfolio.todayPct)}</Text>
+                </View>
+                <Text style={styles.heroChangeText}>
+                  +{money(portfolio.todayPl)} Today
+                </Text>
+              </View>
+            </View>
+
+            <View style={{ marginTop: 14, marginBottom: 30 }}>
+              <Chart
+                data={heroSpark}
+                width={Dimensions.get('window').width - S.xl * 2}
+                height={62}
+                stroke="rgba(255,255,255,0.95)"
+                strokeWidth={2.2}
+                fill
+                fillFrom="rgba(255,255,255,0.32)"
+                fillTo="rgba(255,255,255,0)"
+              />
+            </View>
+          </View>
+        </LinearGradient>
+
+        {/* ---------- BRIDGE CARD (overlaps hero) ---------- */}
+        <Card
+          radius={R.xxl}
+          style={[styles.bridge, SH.float]}
+          pad={S.xl}
+        >
+          <View style={styles.bridgeRow}>
+            <View style={styles.bridgeCol}>
+              <Text style={styles.bridgeLabel}>Buying Power</Text>
+              <Text style={styles.bridgeValue}>{money(portfolio.cash)}</Text>
+            </View>
+            <View style={styles.bridgeDivider} />
+            <View style={styles.bridgeCol}>
+              <Text style={styles.bridgeLabel}>Today’s P/L</Text>
+              <Text style={[styles.bridgeValue, { color: C.positive }]}>
+                +{money(portfolio.todayPl)}
+              </Text>
+              <Text style={styles.bridgeSub}>{pct(portfolio.todayPct)}</Text>
+            </View>
+          </View>
+        </Card>
+
+        {/* ---------- QUICK ACTIONS ---------- */}
+        <View style={styles.quickRow}>
+          <QuickAction label="Buy" icon="add" tone="green" onPress={() => router.push('/markets')} />
+          <QuickAction label="Sell" icon="remove" tone="red" onPress={() => router.push('/portfolio')} />
+          <QuickAction label="Deposit" icon="arrow-down" tone="dark" onPress={() => router.push('/portfolio')} />
+          <QuickAction label="More" icon="apps" tone="light" onPress={() => router.push('/profile')} />
         </View>
+
+        {/* ---------- WATCHLIST ---------- */}
+        <Section style={{ marginTop: S.xxxl }}>
+          <SectionTitle title="My Watchlist" onAction={() => router.push('/markets')} />
+          <Card pad={S.lg} style={{ paddingHorizontal: S.lg }}>
+            {watch.map((s, i) => (
+              <StockRow key={s.id} stock={s} last={i === watch.length - 1} />
+            ))}
+          </Card>
+        </Section>
+
+        {/* ---------- MARKET OVERVIEW ---------- */}
+        <Section style={{ marginTop: S.xxl }}>
+          <SectionTitle title="Market Overview" onAction={() => router.push('/markets')} />
+          <View style={styles.indexRow}>
+            {indices.map((ix) => (
+              <IndexCard key={ix.id} index={ix} />
+            ))}
+          </View>
+        </Section>
+
+        {/* ---------- LEARN & GROW ---------- */}
+        <Section style={{ marginTop: S.xxl }}>
+          <SectionTitle title="Learn & Grow" action="See all" onAction={() => router.push('/learn')} />
+          <Pressable
+            onPress={() => router.push(`/lesson/${cont.id}`)}
+            style={({ pressed }) => pressed && { opacity: 0.9 }}
+          >
+            <Card pad={S.lg} radius={R.xl}>
+              <View style={styles.contRow}>
+                <View style={[styles.contIcon, { backgroundColor: `${cont.color}1F` }]}>
+                  <Ionicons name={cont.icon as never} size={22} color={cont.color} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.contKicker}>CONTINUE LEARNING</Text>
+                  <Text style={styles.contTitle}>{cont.title}</Text>
+                  <View style={styles.bar}>
+                    <View
+                      style={[styles.barFill, { width: `${cont.progress}%`, backgroundColor: cont.color }]}
+                    />
+                  </View>
+                </View>
+                <Ionicons name="play-circle" size={30} color={C.green} />
+              </View>
+            </Card>
+          </Pressable>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{ marginTop: S.md, marginHorizontal: -S.xl }}
+            contentContainerStyle={{ paddingHorizontal: S.xl, gap: S.md }}
+          >
+            {courses.map((c) => (
+              <LearnCard key={c.id} course={c} horizontal />
+            ))}
+          </ScrollView>
+        </Section>
       </ScrollView>
-    </Background>
+    </View>
   );
 }
 
-function QuickAction({
-  icon,
-  label,
-  onPress,
-}: {
-  icon: string;
-  label: string;
-  onPress?: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [styles.qa, pressed && { opacity: 0.8 }]}
-    >
-      <View style={styles.qaCircle}>
-        <Ionicons name={icon as never} size={22} color={C.accent} />
-      </View>
-      <Text style={styles.qaLabel}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function IndexCard({
-  title,
-  value,
-  change,
-  seed,
-  usd,
-}: {
-  title: string;
-  value: string;
-  change: number;
-  seed: number;
-  usd?: boolean;
-}) {
-  const data = useMemo(
-    () =>
-      Array.from({ length: 16 }, (_, i) => 100 + Math.sin(i / 2 + seed) * 6 + i * 0.4),
-    [seed],
-  );
-  const up = change >= 0;
-  return (
-    <GlassCard style={styles.indexCard}>
-      <Text style={styles.indexTitle}>{title}</Text>
-      <Text style={styles.indexValue}>
-        {usd ? '$' : '₦'}
-        {value}
-      </Text>
-      <View style={styles.indexBottom}>
-        <ChangePill value={change} showSign={false} />
-        <Sparkline data={data} positive={up} width={50} height={24} fill={false} />
-      </View>
-    </GlassCard>
-  );
+function Section({ children, style }: { children: React.ReactNode; style?: object }) {
+  return <View style={[{ paddingHorizontal: S.xl }, style]}>{children}</View>;
 }
 
 const styles = StyleSheet.create({
-  header: {
+  screen: { flex: 1, backgroundColor: C.canvas },
+  hero: {
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    overflow: 'hidden',
+  },
+  heroInner: { flex: 1, paddingHorizontal: S.xl },
+  heroHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: S.xl,
-    paddingBottom: S.md,
   },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  greeting: {
-    color: C.text,
-    fontFamily: FONT.sans,
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: -0.2,
-  },
-  greetingSub: {
-    color: C.textMuted,
-    fontFamily: FONT.sans,
-    fontSize: 13,
-  },
-  hero: { marginHorizontal: S.xl, padding: 22, gap: 4 },
-  heroTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  heroLabel: {
-    color: C.textMuted,
-    fontFamily: FONT.sans,
+  heroGreet: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  greetSmall: {
+    color: 'rgba(255,255,255,0.82)',
+    fontFamily: F.sans,
     fontSize: 13,
     fontWeight: '500',
   },
+  greetName: {
+    color: C.white,
+    fontFamily: F.sans,
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  heroIcons: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  pillRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16 },
+  solidPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: R.pill,
+  },
+  solidPillText: {
+    color: C.white,
+    fontFamily: F.sans,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  ghostPill: {
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: R.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
+  },
+  ghostPillText: {
+    color: 'rgba(255,255,255,0.92)',
+    fontFamily: F.mono,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  heroValueBlock: { gap: 6 },
+  heroLabel: {
+    color: 'rgba(255,255,255,0.8)',
+    fontFamily: F.sans,
+    fontSize: 13.5,
+    fontWeight: '600',
+  },
   heroValue: {
-    color: C.text,
-    fontFamily: FONT.sans,
+    color: C.white,
+    fontFamily: F.sans,
     fontSize: 38,
     fontWeight: '800',
     letterSpacing: -1.2,
   },
-  heroChange: {
+  heroChangeRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 2 },
+  whitePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 6,
-    marginBottom: 14,
+    gap: 2,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: R.sm,
+  },
+  whitePillText: {
+    color: C.white,
+    fontFamily: F.mono,
+    fontSize: 12,
+    fontWeight: '700',
   },
   heroChangeText: {
-    color: C.textMuted,
-    fontFamily: FONT.sans,
+    color: 'rgba(255,255,255,0.92)',
+    fontFamily: F.sans,
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
   },
-  heroDivider: {
-    height: 1,
-    backgroundColor: C.border,
-    marginVertical: 4,
-    marginBottom: 14,
+  bridge: {
+    marginTop: -34,
+    marginHorizontal: S.xl,
   },
-  statsRow: { flexDirection: 'row', marginBottom: 18 },
-  stat: { flex: 1, gap: 4 },
-  statDivider: { width: 1, backgroundColor: C.border, marginHorizontal: 4 },
-  statLabel: {
-    color: C.textFaint,
-    fontFamily: FONT.sans,
+  bridgeRow: { flexDirection: 'row', alignItems: 'center' },
+  bridgeCol: { flex: 1, gap: 3 },
+  bridgeDivider: { width: 1, height: 38, backgroundColor: C.hairline, marginHorizontal: 6 },
+  bridgeLabel: {
+    color: C.muted,
+    fontFamily: F.sans,
+    fontSize: 12.5,
+    fontWeight: '600',
+  },
+  bridgeValue: {
+    color: C.ink,
+    fontFamily: F.mono,
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  bridgeSub: {
+    color: C.positive,
+    fontFamily: F.mono,
     fontSize: 12,
-    fontWeight: '500',
-  },
-  statValue: {
-    color: C.text,
-    fontFamily: FONT.mono,
-    fontSize: 16,
     fontWeight: '700',
   },
   quickRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     paddingHorizontal: S.xl,
     marginTop: S.lg,
-    marginBottom: S.xl,
+    gap: S.sm,
   },
-  qa: { alignItems: 'center', gap: 6, flex: 1 },
-  qaCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 18,
-    backgroundColor: C.glass,
-    borderWidth: 1,
-    borderColor: C.border,
+  indexRow: { flexDirection: 'row', gap: S.md },
+  contRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  contIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  qaLabel: {
-    color: C.textMuted,
-    fontFamily: FONT.sans,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  section: { marginTop: S.xl, paddingHorizontal: S.xl },
-  indexRow: { flexDirection: 'row', gap: 12 },
-  indexCard: { flex: 1, padding: 16, gap: 8 },
-  indexTitle: {
-    color: C.textMuted,
-    fontFamily: FONT.sans,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  indexValue: {
-    color: C.text,
-    fontFamily: FONT.mono,
-    fontSize: 22,
+  contKicker: {
+    color: C.green,
+    fontFamily: F.sans,
+    fontSize: 10.5,
     fontWeight: '800',
-    letterSpacing: -0.5,
+    letterSpacing: 1,
   },
-  indexBottom: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  contTitle: {
+    color: C.ink,
+    fontFamily: F.sans,
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+    marginTop: 2,
+    marginBottom: 7,
   },
-  listCard: { paddingVertical: 4 },
-  wordCard: { padding: 18, gap: 14 },
-  wordTop: { flexDirection: 'row', alignItems: 'center' },
-  wordHa: {
-    color: C.accent,
-    fontFamily: FONT.sans,
-    fontSize: 20,
-    fontWeight: '800',
+  bar: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: C.canvasAlt,
+    overflow: 'hidden',
   },
-  wordEn: {
-    color: C.textMuted,
-    fontFamily: FONT.sans,
-    fontSize: 13,
-  },
-  wordMeaning: {
-    color: C.text,
-    fontFamily: FONT.sans,
-    fontSize: 14,
-    lineHeight: 21,
-  },
+  barFill: { height: 6, borderRadius: 3 },
 });

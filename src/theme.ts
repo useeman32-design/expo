@@ -1,50 +1,59 @@
 import { Platform } from 'react-native';
 
 /**
- * Albarka design system.
- * A deep, glassy green palette built around barakah (prosperity):
- * Nigeria's green + financial growth + a premium dark-glass aesthetic.
+ * Albarka design system — premium light fintech.
+ * Deep emerald hero, soft off-white canvas, white rounded cards, soft shadows.
  */
 
 export const C = {
-  // Backgrounds (deep green-black gradient)
-  bg0: '#03130D',
-  bg1: '#07251A',
-  bg2: '#04140E',
+  // ---- Brand greens ----
+  green: '#0E8A57',
+  greenDark: '#0A6B41',
+  greenDeep: '#07593A',
+  greenBright: '#11A06B',
+  greenGlow: '#0FB372',
 
-  // Brand greens
-  accent: '#22E59A',
-  accent2: '#0FD17F',
-  accentDeep: '#0AA663',
-  glow: 'rgba(34, 229, 154, 0.45)',
-  glowSoft: 'rgba(34, 229, 154, 0.16)',
+  // hero gradient (top -> bottom)
+  hero1: '#0A6B41',
+  hero2: '#0E8A57',
+  hero3: '#13B077',
 
-  // Glass surfaces
-  glass: 'rgba(255, 255, 255, 0.055)',
-  glassStrong: 'rgba(255, 255, 255, 0.09)',
-  glassGreen: 'rgba(34, 229, 154, 0.10)',
-  border: 'rgba(255, 255, 255, 0.10)',
-  borderStrong: 'rgba(255, 255, 255, 0.16)',
+  // light green tints
+  greenSoft: '#E7F4EE',
+  greenTint: '#F1F9F5',
 
-  // Text
-  text: '#FFFFFF',
-  textMuted: 'rgba(255, 255, 255, 0.64)',
-  textFaint: 'rgba(255, 255, 255, 0.42)',
+  // ---- Neutrals ----
+  white: '#FFFFFF',
+  canvas: '#F4F6F5', // soft off-white page background
+  canvasAlt: '#EDF1EE',
+  card: '#FFFFFF',
+  hairline: '#EAEFEB',
+  hairlineSoft: '#F1F4F1',
 
-  // Market sentiment
-  positive: '#22E59A',
-  negative: '#FF6B6B',
+  // ---- Text ----
+  ink: '#15201A', // primary charcoal w/ green undertone
+  ink2: '#3A453F',
+  muted: '#6C7771',
+  faint: '#9AA49E',
 
-  // Sharia badge
-  sharia: '#22E59A',
-  haram: '#FF8A65',
+  // ---- Semantic ----
+  positive: '#0E9F5E',
+  positiveSoft: '#E7F6EE',
+  negative: '#DD4B3E',
+  negativeSoft: '#FCEAE8',
+
+  // ---- Misc ----
+  dark: '#16211B',
+  darkSoft: '#22302A',
 } as const;
 
 export const R = {
+  xs: 10,
   sm: 12,
-  md: 18,
-  lg: 24,
-  xl: 30,
+  md: 16,
+  lg: 20,
+  xl: 24,
+  xxl: 28,
   pill: 999,
 } as const;
 
@@ -58,32 +67,42 @@ export const S = {
   xxxl: 32,
 } as const;
 
-export const FONT = {
-  // Use the rounded system font on iOS for a friendlier, premium feel.
+export const F = {
   sans: Platform.select({ ios: 'System', default: 'normal' }),
-  mono: Platform.select({ ios: 'Menlo', default: 'monospace' }),
+  mono: Platform.select({ ios: 'SF Pro Text', default: 'normal' }),
 } as const;
 
-export const SHADOW = {
+export const SH = {
+  // soft ambient card shadow
   card: {
-    shadowColor: '#000',
+    shadowColor: '#0A3D28',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 3,
+  },
+  // lighter list-item shadow
+  soft: {
+    shadowColor: '#0A3D28',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  // floating elements (nav, bridge card)
+  float: {
+    shadowColor: '#08402A',
     shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.35,
-    shadowRadius: 24,
+    shadowOpacity: 0.14,
+    shadowRadius: 28,
     elevation: 10,
   },
-  float: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.45,
-    shadowRadius: 30,
-    elevation: 14,
-  },
-  glow: {
-    shadowColor: C.accent,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.55,
-    shadowRadius: 18,
+  // green-tinted hero elements
+  green: {
+    shadowColor: C.green,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
     elevation: 6,
   },
 } as const;

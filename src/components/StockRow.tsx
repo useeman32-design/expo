@@ -1,20 +1,20 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { Stock } from '@/data/stocks';
+import type { Stock } from '@/types';
 import { price } from '@/utils';
-import { C, FONT, S } from '@/theme';
-import { ChangePill, HalalBadge, StockLogo } from '@/components/ui';
-import { Sparkline } from '@/components/Sparkline';
+import { C, F, S } from '@/theme';
+import { ChangePill, StockLogo } from '@/components/primitives';
+import { Chart } from '@/components/Chart';
 
 export function StockRow({
   stock,
-  showHalal = false,
   last = false,
+  showSpark = true,
 }: {
   stock: Stock;
-  showHalal?: boolean;
   last?: boolean;
+  showSpark?: boolean;
 }) {
   const router = useRouter();
   const up = stock.changePct >= 0;
@@ -24,27 +24,33 @@ export function StockRow({
       style={({ pressed }) => [
         styles.row,
         !last && styles.divider,
-        pressed && { opacity: 0.7 },
+        pressed && { opacity: 0.6 },
       ]}
     >
       <StockLogo ticker={stock.ticker} color={stock.color} size={42} />
       <View style={styles.info}>
-        <View style={styles.tickerRow}>
-          <Text style={styles.ticker} numberOfLines={1}>
-            {stock.ticker}
-          </Text>
-          {showHalal ? <HalalBadge compliant={stock.sharia} small /> : null}
-        </View>
+        <Text style={styles.ticker}>{stock.ticker}</Text>
         <Text style={styles.name} numberOfLines={1}>
           {stock.name}
         </Text>
       </View>
-      <View style={styles.sparkWrap}>
-        <Sparkline data={stock.spark} positive={up} width={56} height={28} fill={false} />
-      </View>
+
+      {showSpark ? (
+        <View style={styles.spark}>
+          <Chart
+            data={stock.spark}
+            width={50}
+            height={26}
+            stroke={up ? C.positive : C.negative}
+            strokeWidth={1.6}
+            fill={false}
+          />
+        </View>
+      ) : null}
+
       <View style={styles.right}>
-        <Text style={styles.price}>{price(stock.price, stock.currency)}</Text>
-        <ChangePill value={stock.changePct} style={{ alignSelf: 'flex-end' }} />
+        <Text style={styles.price}>{price(stock.price, stock.currency === 'NGN' ? '₦' : '$')}</Text>
+        <ChangePill value={stock.changePct} />
       </View>
     </Pressable>
   );
@@ -59,42 +65,27 @@ const styles = StyleSheet.create({
   },
   divider: {
     borderBottomWidth: 1,
-    borderBottomColor: C.border,
+    borderBottomColor: C.hairlineSoft,
   },
-  info: {
-    flex: 1,
-    gap: 2,
-  },
-  tickerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
+  info: { flex: 1, gap: 2 },
   ticker: {
-    color: C.text,
-    fontFamily: FONT.sans,
+    color: C.ink,
+    fontFamily: F.sans,
     fontSize: 15,
     fontWeight: '700',
     letterSpacing: 0.2,
   },
   name: {
-    color: C.textMuted,
-    fontFamily: FONT.sans,
-    fontSize: 12,
+    color: C.muted,
+    fontFamily: F.sans,
+    fontSize: 12.5,
   },
-  sparkWrap: {
-    width: 56,
-    alignItems: 'center',
-  },
-  right: {
-    alignItems: 'flex-end',
-    gap: 4,
-    minWidth: 86,
-  },
+  spark: { width: 50, alignItems: 'center' },
+  right: { alignItems: 'flex-end', gap: 3, minWidth: 78 },
   price: {
-    color: C.text,
-    fontFamily: FONT.mono,
-    fontSize: 14,
+    color: C.ink,
+    fontFamily: F.mono,
+    fontSize: 14.5,
     fontWeight: '700',
   },
 });
