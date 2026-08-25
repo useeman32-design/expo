@@ -1,11 +1,27 @@
 import { useEffect } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 
 import { C, F } from '@/theme';
 import { StoreProvider } from '@/store';
 import { AuthProvider, useAuth } from '@/auth';
 import { Toast } from '@/components/Toast';
+
+// Web typography: self-hosted variable fonts (public/fonts), matching the
+// StocksX web reference — Inter for text, Space Grotesk for display/numerals.
+// One 48KB file covers every Inter weight (variable font); font-display:swap
+// keeps text visible while they load. No CDN dependency — works offline.
+if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getElementById('sx-webfonts')) {
+  const base = (typeof process !== 'undefined' && process.env && process.env.EXPO_BASE_URL) || '';
+  const style = document.createElement('style');
+  style.id = 'sx-webfonts';
+  style.textContent =
+    `@font-face{font-family:'Inter';font-style:normal;font-display:swap;font-weight:100 900;` +
+    `src:url('${base}/fonts/inter-var.woff2') format('woff2')}` +
+    `@font-face{font-family:'Space Grotesk';font-style:normal;font-display:swap;font-weight:300 700;` +
+    `src:url('${base}/fonts/space-grotesk-var.woff2') format('woff2')}`;
+  document.head.appendChild(style);
+}
 
 /**
  * Guards the app based on auth state:

@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   },
   ghostPillText: {
     color: 'rgba(255,255,255,0.92)',
-    fontFamily: F.mono,
+    fontFamily: F.sans,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   },
   heroValue: {
     color: C.white,
-    fontFamily: F.sans,
+    fontFamily: F.display,
     fontSize: 38,
     fontWeight: '800',
     letterSpacing: -1.2,
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
   },
   whitePillText: {
     color: C.white,
-    fontFamily: F.mono,
+    fontFamily: F.sans,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   },
   bridgeSub: {
     color: C.positive,
-    fontFamily: F.mono,
+    fontFamily: F.sans,
     fontSize: 12,
     fontWeight: '700',
   },

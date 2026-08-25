@@ -68,8 +68,31 @@ export const S = {
 } as const;
 
 export const F = {
-  sans: Platform.select({ ios: 'System', default: 'normal' }),
-  mono: Platform.select({ ios: 'SF Pro Text', default: 'normal' }),
+  // Text font. iOS: SF Pro (System). Android: Roboto. Web: Inter, like the
+  // StocksX web reference.
+  sans: Platform.select({
+    ios: 'System',
+    android: 'sans-serif',
+    web: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    default: 'normal',
+  }),
+  // Display font for brand, titles and financial numerals (balances, prices,
+  // stats) — Space Grotesk on web, exactly like the reference app's
+  // --font-display. System font on native (unchanged look).
+  display: Platform.select({
+    ios: 'System',
+    android: 'sans-serif',
+    web: "'Space Grotesk', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    default: 'normal',
+  }),
+  // Numerals font kept for legacy F.mono usages (prices/values): renders as the
+  // display font on web and the system font on native.
+  mono: Platform.select({
+    ios: 'SF Pro Text',
+    android: 'sans-serif',
+    web: "'Space Grotesk', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    default: 'normal',
+  }),
 } as const;
 
 export const SH = {

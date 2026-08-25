@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -13,8 +13,6 @@ import { C, F, R, S, SH } from '@/theme';
 import img1 from '@/assets/onboarding/onboarding1.png';
 import img2 from '@/assets/onboarding/onboarding2.png';
 import img3 from '@/assets/onboarding/onboarding3.png';
-
-const { width } = Dimensions.get('window');
 
 const SLIDES = [
   {
@@ -37,10 +35,23 @@ const SLIDES = [
 export default function OnboardingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const { completeOnboarding } = useAuth();
   const scrollRef = useRef<ScrollView>(null);
   const [index, setIndex] = useState(0);
   const last = index === SLIDES.length - 1;
+
+  // Preload every slide image up front so swiping never stalls on a decode.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && typeof (window as any).Image === 'function') {
+      SLIDES.forEach((s) => {
+        const preloader = new (window as any).Image();
+        preloader.src = s.img as any;
+      });
+    } else {
+      SLIDES.forEach((s) => Image.prefetch(s.img as any).catch(() => undefined));
+    }
+  }, []);
 
   const go = (i: number) => scrollRef.current?.scrollTo({ x: i * width, animated: true });
 
@@ -75,18 +86,17 @@ export default function OnboardingScreen() {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         scrollEventThrottle={16}
+        onScroll={(e) => {
+          const i = Math.round(e.nativeEvent.contentOffset.x / width);
+          setIndex((prev) => (i === prev ? prev : i));
+        }}
         onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
         style={{ flex: 1 }}
       >
         {SLIDES.map((s, i) => (
-          <View key={i} style={styles.slide}>
-            <View style={styles.imgCard}>
-              <Image
-                source={s.img}
-                style={styles.img}
-                contentFit="contain"
-                transition={180}
-              />
+          <View key={i} style={[styles.slide, { width }]}>
+            <View style={[styles.imgCard, { width: width - S.xxl * 2 }]}>
+              <Image source={s.img} style={styles.img} contentFit="contain" />
             </View>
             <Text style={styles.title}>{s.title}</Text>
             <Text style={styles.sub}>{s.sub}</Text>
@@ -148,10 +158,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoLetter: { color: C.white, fontFamily: F.sans, fontSize: 17, fontWeight: '900' },
+  logoLetter: { color: C.white, fontFamily: F.display, fontSize: 17, fontWeight: '900' },
   wordmarkText: {
     color: C.ink,
-    fontFamily: F.sans,
+    fontFamily: F.display,
     fontSize: 19,
     fontWeight: '900',
     letterSpacing: -0.3,
@@ -164,16 +174,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   slide: {
-    width,
     paddingHorizontal: S.xxl,
     alignItems: 'center',
     paddingTop: S.md,
   },
   imgCard: {
-    width: width - S.xxl * 2,
-    height: width - S.xxl * 2,
     maxWidth: 340,
-    maxHeight: 340,
+    aspectRatio: 1,
     borderRadius: R.xxl,
     backgroundColor: C.white,
     alignItems: 'center',
@@ -183,7 +190,7 @@ const styles = StyleSheet.create({
   img: { width: '100%', height: '100%' },
   title: {
     color: C.ink,
-    fontFamily: F.sans,
+    fontFamily: F.display,
     fontSize: 25,
     fontWeight: '900',
     letterSpacing: -0.6,

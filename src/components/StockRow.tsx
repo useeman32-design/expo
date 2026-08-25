@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   info: { flex: 1, gap: 2 },
   ticker: {
     color: C.ink,
-    fontFamily: F.sans,
+    fontFamily: F.display,
     fontSize: 15,
     fontWeight: '700',
     letterSpacing: 0.2,

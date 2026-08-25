@@ -195,9 +195,9 @@ export function TradeSheet({
 
 const styles = StyleSheet.create({
   stockHead: { flexDirection: 'row', alignItems: 'center', marginBottom: S.md },
-  ticker: { color: C.ink, fontFamily: F.sans, fontSize: 17, fontWeight: '800' },
+  ticker: { color: C.ink, fontFamily: F.display, fontSize: 17, fontWeight: '800' },
   name: { color: C.muted, fontFamily: F.sans, fontSize: 12.5 },
-  sPrice: { color: C.ink, fontFamily: F.mono, fontSize: 17, fontWeight: '800' },
+  sPrice: { color: C.ink, fontFamily: F.display, fontSize: 17, fontWeight: '800' },
   seg: {
     flexDirection: 'row',
     backgroundColor: C.canvasAlt,

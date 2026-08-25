@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   },
   sumValue: {
     color: C.ink,
-    fontFamily: F.sans,
+    fontFamily: F.display,
     fontSize: 34,
     fontWeight: '800',
     letterSpacing: -1,
