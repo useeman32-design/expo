@@ -26,7 +26,9 @@ function useProtectedRoute(ready: boolean, onboarded: boolean, user: unknown) {
       router.replace('/onboarding');
     } else if (onboarded && !user && !inAuth && !inOnboarding) {
       router.replace('/login');
-    } else if (user && (inAuth || inOnboarding)) {
+    } else if (onboarded && user && (inAuth || inOnboarding)) {
+      // only bounce out of auth screens when onboarding is done — otherwise
+      // "replay onboarding" (onboarded=false + logged in) would ping-pong forever
       router.replace('/(tabs)');
     }
   }, [ready, onboarded, user, root, router]);

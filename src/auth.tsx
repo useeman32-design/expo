@@ -79,15 +79,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  /** Clears the onboarding flag so the intro slides show again on next launch. */
+  /**
+   * Clears the onboarding flag AND the session so the intro slides play again
+   * from the top (fresh-install experience: onboarding -> Get Started -> login).
+   */
   const resetOnboarding = async () => {
     setOnboarded(false);
+    setUser(null);
     try {
-      await AsyncStorage.removeItem(KEY_ONBOARDED);
+      await Promise.all([AsyncStorage.removeItem(KEY_ONBOARDED), AsyncStorage.removeItem(KEY_USER)]);
     } catch {
       /* ignore */
     }
-  };
+  };;
 
   const signInWith = async (provider: AuthProvider) => {
     const u: SessionUser =
