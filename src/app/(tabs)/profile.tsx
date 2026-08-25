@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Avatar, Card, ScreenHeader, SectionTitle } from '@/components/primitives';
+import { useAuth } from '@/auth';
 import { getPortfolio } from '@/services/portfolio';
 import { C, F, R, S, SH } from '@/theme';
 import { money } from '@/utils';
@@ -15,7 +16,7 @@ const MENU = [
   { icon: 'eye-outline', label: 'Watchlist', color: '#7C5CFF', route: '/markets' },
   { icon: 'card-outline', label: 'Deposits & Withdrawals', color: '#11A06B', route: '' },
   { icon: 'shield-checkmark-outline', label: 'KYC & Verification', color: '#F6A623', route: '' },
-  { icon: 'notifications-outline', label: 'Notifications', color: '#3DDC97', route: '' },
+  { icon: 'notifications-outline', label: 'Notifications', color: '#3DDC97', route: '/notifications' },
   { icon: 'help-circle-outline', label: 'Help & Support', color: '#DD4B3E', route: '' },
 ];
 
@@ -23,7 +24,9 @@ export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const p = getPortfolio();
+  const { user, signOut } = useAuth();
   const [hausa, setHausa] = useState(false);
+  const initial = (user?.name ?? 'U').charAt(0).toUpperCase();
 
   return (
     <View style={styles.screen}>
@@ -36,14 +39,16 @@ export default function ProfileScreen() {
           <Card pad={S.xl} radius={R.xl}>
             <View style={styles.userRow}>
               <View style={styles.avatar}>
-                <Text style={styles.avatarText}>U</Text>
+                <Text style={styles.avatarText}>{initial}</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.userName}>Usman Abdullahi</Text>
-                <Text style={styles.userEmail}>usman.abdullahi@email.com</Text>
+                <Text style={styles.userName}>{user?.name ?? 'Usman Abdullahi'}</Text>
+                <Text style={styles.userEmail}>{user?.email ?? 'usman.abdullahi@email.com'}</Text>
                 <View style={styles.verified}>
                   <Ionicons name="shield-checkmark" size={13} color={C.green} />
-                  <Text style={styles.verifiedText}>KYC Verified</Text>
+                  <Text style={styles.verifiedText}>
+                    {user?.guest ? 'Guest mode' : 'KYC Verified'}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -110,6 +115,7 @@ export default function ProfileScreen() {
         {/* logout */}
         <View style={{ paddingHorizontal: S.xl, marginTop: S.xl }}>
           <Pressable
+            onPress={signOut}
             style={({ pressed }) => [styles.logout, pressed && { opacity: 0.85 }]}
           >
             <Ionicons name="log-out-outline" size={18} color={C.negative} />

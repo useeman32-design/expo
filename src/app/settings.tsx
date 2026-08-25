@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Avatar, Card, ScreenHeader } from '@/components/primitives';
+import { useAuth } from '@/auth';
 import { C, F, R, S } from '@/theme';
 
 type Row =
@@ -70,6 +71,8 @@ export default function SettingsScreen() {
     confirm: true,
   });
 
+  const { user, signOut } = useAuth();
+
   const flip = (k: ToggleKey) => setToggles((t) => ({ ...t, [k]: !t[k] }));
 
   return (
@@ -86,9 +89,11 @@ export default function SettingsScreen() {
           <View style={styles.profile}>
             <Avatar initials="U" size={54} />
             <View style={{ flex: 1, marginLeft: 14 }}>
-              <Text style={styles.profileName}>Usman Musa</Text>
-              <Text style={styles.profileEmail}>usman.musa@stocksx.app</Text>
-              <Text style={styles.profileTag}>Verified · Tier 2</Text>
+              <Text style={styles.profileName}>{user?.name ?? 'Usman Musa'}</Text>
+              <Text style={styles.profileEmail}>{user?.email ?? 'usman.musa@stocksx.app'}</Text>
+              <Text style={styles.profileTag}>
+                {user?.guest ? 'Guest mode' : `Signed in with ${user?.provider ?? 'email'} · Verified`}
+              </Text>
             </View>
             <Pressable style={styles.editBtn}>
               <Text style={styles.editText}>Edit</Text>
@@ -113,7 +118,10 @@ export default function SettingsScreen() {
           </View>
         ))}
 
-        <Pressable style={({ pressed }) => [styles.logoutBtn, pressed && { opacity: 0.9 }]}>
+        <Pressable
+          onPress={signOut}
+          style={({ pressed }) => [styles.logoutBtn, pressed && { opacity: 0.9 }]}
+        >
           <Ionicons name="log-out-outline" size={19} color={C.negative} />
           <Text style={styles.logoutText}>Log out</Text>
         </Pressable>
