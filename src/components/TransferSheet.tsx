@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { useStore } from '@/store';
-import { Sheet, SheetRow } from '@/components/Sheet';
+import { Sheet, SheetRow, SuccessOverlay } from '@/components/Sheet';
 import { Button, Chip } from '@/components/primitives';
 import { C, F, R, S } from '@/theme';
 import { money } from '@/utils';
@@ -21,11 +21,18 @@ export function TransferSheet({
   const store = useStore();
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState(METHODS[0]);
+  const [err, setErr] = useState('');
+  const [success, setSuccess] = useState<{ open: boolean; title: string; sub?: string }>({
+    open: false,
+    title: '',
+  });
 
   useEffect(() => {
     if (visible) {
       setAmount('');
       setMethod(METHODS[0]);
+      setErr('');
+      setSuccess({ open: false, title: '' });
     }
   }, [visible]);
 
@@ -34,8 +41,17 @@ export function TransferSheet({
   const primary = isDeposit ? C.green : C.negative;
 
   const confirm = () => {
+    setErr('');
     const res = isDeposit ? store.deposit(amt) : store.withdraw(amt);
-    if (res.ok) onClose();
+    if (res.ok) {
+      setSuccess({
+        open: true,
+        title: isDeposit ? 'Deposit complete!' : 'Withdrawal sent!',
+        sub: `${money(amt)} · ${method}`,
+      });
+    } else {
+      setErr(res.msg);
+    }
   };
 
   return (
@@ -43,6 +59,17 @@ export function TransferSheet({
       visible={visible}
       onClose={onClose}
       title={isDeposit ? 'Deposit' : 'Withdraw'}
+      overlay={
+        <SuccessOverlay
+          visible={success.open}
+          title={success.title}
+          subtitle={success.sub}
+          onDone={() => {
+            setSuccess({ open: false, title: '' });
+            onClose();
+          }}
+        />
+      }
     >
       <View style={styles.balanceBox}>
         <Text style={styles.balanceLabel}>Available balance</Text>
@@ -88,6 +115,7 @@ export function TransferSheet({
         />
       </View>
 
+      {err ? <Text style={styles.errText}>{err}</Text> : null}
       <View style={{ marginTop: S.md }}>
         <Button
           label={isDeposit ? 'Deposit funds' : 'Withdraw funds'}
@@ -163,5 +191,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
     textAlign: 'center',
     marginTop: S.md,
+  },
+  errText: {
+    color: C.negative,
+    fontFamily: F.sans,
+    fontSize: 12.5,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: S.sm,
   },
 });

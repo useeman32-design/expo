@@ -20,6 +20,7 @@ export interface Stock {
   changeAbs: number;
   sector: string;
   color: string;
+  tvSymbol: string;
   spark: number[];
   // fundamentals
   open: number;
@@ -91,4 +92,18 @@ export interface GlossaryTerm {
   ha: string;
   en: string;
   meaning: string;
+}
+
+export type NotificationKind = 'price' | 'order' | 'news' | 'system';
+
+export interface NotificationItem {
+  id: string;
+  kind: NotificationKind;
+  icon: string;
+  color: string;
+  title: string;
+  body: string;
+  time: string;
+  read: boolean;
+  ticker?: string;
 }

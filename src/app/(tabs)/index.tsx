@@ -82,8 +82,8 @@ export default function HomeScreen() {
                 </View>
               </View>
               <View style={styles.heroIcons}>
-                <IconBtn name="notifications-outline" onPress={() => {}} />
-                <IconBtn name="settings-outline" onPress={() => router.push('/profile')} />
+                <IconBtn name="notifications-outline" onPress={() => router.push('/notifications')} />
+                <IconBtn name="settings-outline" onPress={() => router.push('/settings')} />
               </View>
             </View>
 
@@ -160,7 +160,7 @@ export default function HomeScreen() {
           <QuickAction label="Buy" icon="add" tone="green" onPress={() => router.push('/markets')} />
           <QuickAction label="Sell" icon="remove" tone="red" onPress={() => router.push('/portfolio')} />
           <QuickAction label="Deposit" icon="arrow-down" tone="dark" onPress={() => setTransfer({ open: true, mode: 'deposit' })} />
-          <QuickAction label="More" icon="apps" tone="light" onPress={() => router.push('/profile')} />
+          <QuickAction label="Withdraw" icon="arrow-up" tone="dark" onPress={() => setTransfer({ open: true, mode: 'withdraw' })} />
         </View>
 
         {/* ---------- WATCHLIST ---------- */}

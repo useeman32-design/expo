@@ -1,54 +1,31 @@
-import { useMemo, useState } from 'react';
-import { Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { compact, pct, price } from '@/utils';
 import type { OrderSide } from '@/types';
 import { Card, ScreenHeader, SectionTitle, Stat, StockLogo } from '@/components/primitives';
-import { Candlestick, Chart } from '@/components/Chart';
+import { TradingViewChart } from '@/components/TradingViewChart';
 import { TradeSheet } from '@/components/TradeSheet';
 import { getStock } from '@/services/marketData';
 import { getLogo } from '@/services/logos';
 import { C, F, R, S } from '@/theme';
-import { compact, genCandles, genSpark, money, pct, price } from '@/utils';
-
-const RANGES = ['1D', '1W', '1M', '3M', '1Y', '5Y'] as const;
-type Range = (typeof RANGES)[number];
-
-function hash(s: string) {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-  return Math.abs(h);
-}
 
 export default function StockDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const stock = getStock(String(id));
-  const [range, setRange] = useState<Range>('1M');
   const [watch, setWatch] = useState(false);
   const [chartType, setChartType] = useState<'line' | 'candles'>('line');
   const [trade, setTrade] = useState<{ open: boolean; side: OrderSide }>({
     open: false,
     side: 'Buy',
   });
-
-  const chartW = Dimensions.get('window').width - S.xl * 2 - S.lg * 2;
-
-  const chart = useMemo(() => {
-    if (!stock) return [];
-    const idx = RANGES.indexOf(range);
-    return genSpark(hash(stock.id) + idx * 11, 40, 0.015 + idx * 0.004, (stock.changePct / 100) * (0.3 + idx * 0.4));
-  }, [stock, range]);
-
-  const candles = useMemo(() => {
-    if (!stock) return [];
-    return genCandles(hash(stock.id) + RANGES.indexOf(range) * 11, 44);
-  }, [stock, range]);
 
   if (!stock) {
     return (
@@ -105,7 +82,7 @@ export default function StockDetailScreen() {
         {/* content */}
         <View style={styles.content}>
           {/* chart */}
-          <Card pad={S.lg} radius={R.xl} style={{ paddingBottom: 0 }}>
+          <Card pad={S.lg} radius={R.xl}>
             <View style={styles.chartTypes}>
               {(['line', 'candles'] as const).map((t) => (
                 <Pressable
@@ -118,38 +95,11 @@ export default function StockDetailScreen() {
                   </Text>
                 </Pressable>
               ))}
+              <View style={{ flex: 1 }} />
+              <Text style={styles.liveTag}>● LIVE</Text>
             </View>
-            <View style={styles.chartBox}>
-              {chartType === 'line' ? (
-                <Chart
-                  data={chart}
-                  width={chartW}
-                  height={170}
-                  stroke={up ? C.positive : C.negative}
-                  strokeWidth={2.4}
-                  fill
-                  fillFrom={up ? C.positive : C.negative}
-                />
-              ) : (
-                <Candlestick
-                  data={candles}
-                  width={chartW}
-                  height={170}
-                  upColor={C.positive}
-                  downColor={C.negative}
-                />
-              )}
-            </View>
-            <View style={styles.ranges}>
-              {RANGES.map((r) => (
-                <Pressable
-                  key={r}
-                  onPress={() => setRange(r)}
-                  style={[styles.range, range === r && styles.rangeActive]}
-                >
-                  <Text style={[styles.rangeText, range === r && styles.rangeTextActive]}>{r}</Text>
-                </Pressable>
-              ))}
+            <View style={{ marginTop: S.sm }}>
+              <TradingViewChart symbol={stock.tvSymbol} type={chartType} height={360} />
             </View>
           </Card>
 
@@ -256,12 +206,7 @@ const styles = StyleSheet.create({
   chartTypeActive: { backgroundColor: C.green },
   chartTypeText: { color: C.muted, fontFamily: F.sans, fontSize: 12.5, fontWeight: '700' },
   chartTypeTextActive: { color: C.white },
-  chartBox: { alignItems: 'center', marginBottom: S.md },
-  ranges: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: C.canvasAlt, borderRadius: R.pill, padding: 4, marginBottom: S.lg },
-  range: { flex: 1, paddingVertical: 7, borderRadius: R.pill, alignItems: 'center' },
-  rangeActive: { backgroundColor: C.white, shadowColor: '#0A3D28', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 1 },
-  rangeText: { color: C.muted, fontFamily: F.sans, fontSize: 12.5, fontWeight: '700' },
-  rangeTextActive: { color: C.ink },
+  liveTag: { color: C.positive, fontFamily: F.mono, fontSize: 11, fontWeight: '800' },
   statRow: { flexDirection: 'row', paddingVertical: S.md, borderBottomWidth: 1, borderBottomColor: C.hairlineSoft, gap: 12 },
   aboutText: { color: C.ink2, fontFamily: F.sans, fontSize: 14.5, lineHeight: 22 },
   newsTitle: { color: C.ink, fontFamily: F.sans, fontSize: 14.5, fontWeight: '600', lineHeight: 20 },

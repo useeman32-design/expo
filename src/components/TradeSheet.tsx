@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { OrderSide, Stock } from '@/types';
 import { useStore } from '@/store';
 import { getLogo } from '@/services/logos';
-import { Sheet, SheetRow } from '@/components/Sheet';
+import { Sheet, SheetRow, SuccessOverlay } from '@/components/Sheet';
 import { Button, Chip, StockLogo } from '@/components/primitives';
 import { C, F, R, S } from '@/theme';
 import { money, price } from '@/utils';
@@ -26,6 +26,11 @@ export function TradeSheet({
   const [type, setType] = useState<'Market' | 'Limit'>('Market');
   const [qty, setQty] = useState('1');
   const [limit, setLimit] = useState('');
+  const [err, setErr] = useState('');
+  const [success, setSuccess] = useState<{ open: boolean; title: string; sub?: string }>({
+    open: false,
+    title: '',
+  });
 
   useEffect(() => {
     if (visible) {
@@ -33,6 +38,8 @@ export function TradeSheet({
       setType('Market');
       setQty('1');
       setLimit(stock ? String(stock.price) : '');
+      setErr('');
+      setSuccess({ open: false, title: '' });
     }
   }, [visible, initialSide, stock]);
 
@@ -46,17 +53,41 @@ export function TradeSheet({
   const setQtyN = (v: number) => setQty(String(Math.max(0, v)));
 
   const confirm = () => {
+    setErr('');
     const res =
       side === 'Buy'
         ? store.buy(stock.id, n, execPrice)
         : store.sell(stock.id, n, execPrice);
-    if (res.ok) onClose();
+    if (res.ok) {
+      setSuccess({
+        open: true,
+        title: side === 'Buy' ? 'Order filled!' : 'Order sold!',
+        sub: `${n} ${stock.ticker} · ${money(total, cur)}`,
+      });
+    } else {
+      setErr(res.msg);
+    }
   };
 
   const primary = side === 'Buy' ? C.green : C.negative;
 
   return (
-    <Sheet visible={visible} onClose={onClose} title={side === 'Buy' ? 'Buy' : 'Sell'}>
+    <Sheet
+      visible={visible}
+      onClose={onClose}
+      title={side === 'Buy' ? 'Buy' : 'Sell'}
+      overlay={
+        <SuccessOverlay
+          visible={success.open}
+          title={success.title}
+          subtitle={success.sub}
+          onDone={() => {
+            setSuccess({ open: false, title: '' });
+            onClose();
+          }}
+        />
+      }
+    >
       {/* stock header */}
       <View style={styles.stockHead}>
         <StockLogo ticker={stock.ticker} color={stock.color} size={44} logo={getLogo(stock.id)} />
@@ -147,6 +178,7 @@ export function TradeSheet({
         />
       </View>
 
+      {err ? <Text style={styles.errText}>{err}</Text> : null}
       <View style={{ marginTop: S.md }}>
         <Button
           label={`Confirm ${side} · ${money(total, cur)}`}
@@ -230,5 +262,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
     textAlign: 'center',
     marginTop: S.md,
+  },
+  errText: {
+    color: C.negative,
+    fontFamily: F.sans,
+    fontSize: 12.5,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: S.sm,
   },
 });

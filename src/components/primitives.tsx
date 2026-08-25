@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, Text, View, StyleProp, ViewStyle } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -16,7 +16,7 @@ export function Card({
   pad,
 }: {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   radius?: number;
   pad?: number;
 }) {

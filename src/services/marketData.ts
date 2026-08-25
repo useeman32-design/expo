@@ -9,6 +9,7 @@ interface StockSeed {
   price: number;
   changePct: number;
   changeAbs?: number;
+  tvSymbol?: string;
   sector: string;
   color: string;
   marketCap: number;
@@ -57,6 +58,7 @@ function mk(s: StockSeed): Stock {
     news: s.news ?? [],
     trending: s.trending,
     active: s.active,
+    tvSymbol: s.tvSymbol ?? TV_SYMBOLS[s.id] ?? 'NASDAQ:AAPL',
   };
 }
 
@@ -65,6 +67,29 @@ function hash(s: string) {
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
   return Math.abs(h);
 }
+
+// TradingView symbol per stock (real exchange data in the chart)
+const TV_SYMBOLS: Record<string, string> = {
+  mtnn: 'NGEX:MTNN',
+  gtco: 'NGEX:GTCO',
+  zenith: 'NGEX:ZENITHBANK',
+  dangcem: 'NGEX:DANGCEM',
+  buafoods: 'NGEX:BUAFOODS',
+  airtelafri: 'NGEX:AIRTELAFRI',
+  seplat: 'NGEX:SEPLAT',
+  geregu: 'NGEX:GEREGU',
+  buacement: 'NGEX:BUACEMENT',
+  jaizbank: 'NGEX:JAAZBANK',
+  nestle: 'NGEX:NESTLE',
+  access: 'NGEX:ACCESS',
+  presco: 'NGEX:PRESCO',
+  aapl: 'NASDAQ:AAPL',
+  tsla: 'NASDAQ:TSLA',
+  msft: 'NASDAQ:MSFT',
+  amzn: 'NASDAQ:AMZN',
+  nvda: 'NASDAQ:NVDA',
+  googl: 'NASDAQ:GOOGL',
+};
 
 const SEEDS: StockSeed[] = [
   {

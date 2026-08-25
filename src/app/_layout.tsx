@@ -17,6 +17,8 @@ export default function RootLayout() {
         <Stack.Screen name="stock/[id]" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="lesson/[id]" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="orders" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="settings" options={{ animation: 'slide_from_right' }} />
       </Stack>
       <Toast />
     </StoreProvider>
