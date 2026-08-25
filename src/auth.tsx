@@ -21,6 +21,7 @@ interface AuthValue {
   onboarded: boolean;
   user: SessionUser | null;
   completeOnboarding: () => Promise<void>;
+  resetOnboarding: () => Promise<void>;
   signInWith: (provider: AuthProvider) => Promise<void>;
   signInEmail: (email: string, name?: string) => Promise<void>;
   register: (name: string, email: string) => Promise<void>;
@@ -78,6 +79,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  /** Clears the onboarding flag so the intro slides show again on next launch. */
+  const resetOnboarding = async () => {
+    setOnboarded(false);
+    try {
+      await AsyncStorage.removeItem(KEY_ONBOARDED);
+    } catch {
+      /* ignore */
+    }
+  };
+
   const signInWith = async (provider: AuthProvider) => {
     const u: SessionUser =
       provider === 'google'
@@ -118,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         onboarded,
         user,
         completeOnboarding,
+        resetOnboarding,
         signInWith,
         signInEmail,
         register,

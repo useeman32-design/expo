@@ -56,6 +56,7 @@ const SECTIONS: { title: string; rows: Row[] }[] = [
   {
     title: 'About',
     rows: [
+      { icon: 'refresh', color: '#0E8A57', label: 'Replay onboarding', kind: 'link' },
       { icon: 'lock-closed', color: '#6C7771', label: 'Privacy policy', kind: 'link' },
       { icon: 'document-text', color: '#6C7771', label: 'Terms of service', kind: 'link' },
       { icon: 'information-circle', color: '#6C7771', label: 'App version', kind: 'link', value: 'v1.0.0 (demo)' },
@@ -71,7 +72,14 @@ export default function SettingsScreen() {
     confirm: true,
   });
 
-  const { user, signOut } = useAuth();
+  const { user, signOut, resetOnboarding } = useAuth();
+
+  const handleLink = (label: string) => {
+    if (label === 'Replay onboarding') {
+      // Guard sees onboarded=false and routes back to the intro slides
+      resetOnboarding();
+    }
+  };
 
   const flip = (k: ToggleKey) => setToggles((t) => ({ ...t, [k]: !t[k] }));
 
@@ -112,6 +120,7 @@ export default function SettingsScreen() {
                   last={i === section.rows.length - 1}
                   value={row.kind === 'toggle' ? toggles[row.key] : undefined}
                   onToggle={row.kind === 'toggle' ? () => flip(row.key) : undefined}
+                  onLink={handleLink}
                 />
               ))}
             </Card>
@@ -138,16 +147,18 @@ function SettingsRow({
   last,
   value,
   onToggle,
+  onLink,
 }: {
   row: Row;
   last: boolean;
   value?: boolean;
   onToggle?: () => void;
+  onLink?: (label: string) => void;
 }) {
   const isLink = row.kind === 'link';
   return (
     <Pressable
-      onPress={isLink ? () => {} : undefined}
+      onPress={isLink && onLink ? () => onLink(row.label) : undefined}
       style={({ pressed }) => [styles.row, !last && styles.rowBorder, pressed && { opacity: 0.6 }]}
     >
       <View style={[styles.rowIcon, { backgroundColor: `${row.color}1F` }]}>

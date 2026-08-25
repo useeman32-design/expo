@@ -131,8 +131,10 @@ export function SuccessOverlay({
         easing: Easing.out(Easing.quad),
         useNativeDriver: false,
       }),
-      Animated.timing(badgeFill, { toValue: 1, duration: 280, delay: 820, useNativeDriver: false }),
-      Animated.timing(markDraw, { toValue: 1, duration: 460, delay: 1020, useNativeDriver: false }),
+      // badge fill completes…
+      Animated.timing(badgeFill, { toValue: 1, duration: 340, delay: 820, useNativeDriver: false }),
+      // …and the check/X fades in gradually WHILE the fill is completing
+      Animated.timing(markDraw, { toValue: 1, duration: 380, delay: 920, useNativeDriver: false }),
     ];
 
     Animated.parallel(native).start();
@@ -146,7 +148,6 @@ export function SuccessOverlay({
 
   const rotStr = rotate.interpolate({ inputRange: [0, 720], outputRange: ['0deg', '720deg'] });
   const ringOffset = ringDraw.interpolate({ inputRange: [0, 1], outputRange: [RING_CIRC, 0] });
-  const markOffset = markDraw.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
 
   return (
     <View style={succStyles.shade}>
@@ -171,9 +172,7 @@ export function SuccessOverlay({
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"
-            pathLength={1}
-            strokeDasharray={1}
-            strokeDashoffset={markOffset}
+            opacity={markDraw}
           />
         </Svg>
       </Animated.View>
