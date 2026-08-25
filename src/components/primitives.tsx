@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -88,12 +90,16 @@ export function StockLogo({
   ticker,
   color,
   size = 40,
+  logo,
 }: {
   ticker: string;
   color: string;
   size?: number;
+  logo?: unknown;
 }) {
+  const [err, setErr] = useState(false);
   const initials = ticker.replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase();
+  const showLogo = !!logo && !err;
   return (
     <View
       style={[
@@ -102,14 +108,25 @@ export function StockLogo({
           width: size,
           height: size,
           borderRadius: size * 0.3,
-          backgroundColor: `${color}1A`,
-          borderColor: `${color}33`,
+          backgroundColor: showLogo ? C.white : `${color}1A`,
+          borderColor: showLogo ? C.hairline : `${color}33`,
+          overflow: 'hidden',
         },
       ]}
     >
-      <Text style={[styles.logoText, { color, fontSize: size * 0.34 }]}>
-        {initials}
-      </Text>
+      {showLogo ? (
+        <Image
+          source={logo as never}
+          style={{ width: size, height: size }}
+          contentFit="contain"
+          transition={120}
+          onError={() => setErr(true)}
+        />
+      ) : (
+        <Text style={[styles.logoText, { color, fontSize: size * 0.34 }]}>
+          {initials}
+        </Text>
+      )}
     </View>
   );
 }

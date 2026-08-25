@@ -1,11 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Card, ChangePill, ScreenHeader, SectionTitle, Stat, StockLogo } from '@/components/primitives';
+import { Button, Card, ChangePill, ScreenHeader, SectionTitle, Stat, StockLogo } from '@/components/primitives';
+import { TransferSheet } from '@/components/TransferSheet';
+import { useStore } from '@/store';
+import { getLogo } from '@/services/logos';
 import { getHoldings, getPortfolio } from '@/services/portfolio';
 import { C, F, R, S, SH } from '@/theme';
 import { money, pct } from '@/utils';
@@ -13,8 +16,13 @@ import { money, pct } from '@/utils';
 export default function PortfolioScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const store = useStore();
   const p = useMemo(() => getPortfolio(), []);
-  const holdings = useMemo(() => getHoldings(), []);
+  const holdings = useMemo(() => getHoldings(store.holdings), [store.holdings]);
+  const [transfer, setTransfer] = useState<{ open: boolean; mode: 'deposit' | 'withdraw' }>({
+    open: false,
+    mode: 'deposit',
+  });
 
   return (
     <View style={styles.screen}>
@@ -59,14 +67,20 @@ export default function PortfolioScreen() {
               </View>
             </View>
             <View style={[styles.grid, { marginTop: S.lg }]}>
-              <Stat label="Cash Balance" value={money(p.cash)} />
+              <Stat label="Cash Balance" value={money(store.cash)} />
               <View style={styles.gridLine} />
               <View>
                 <Text style={styles.miniLabel}>Buying Power</Text>
-                <Text style={styles.miniValue}>{money(p.cash)}</Text>
+                <Text style={styles.miniValue}>{money(store.cash)}</Text>
               </View>
             </View>
           </Card>
+
+          <View style={styles.actionRow}>
+            <Button label="Deposit" icon="add" variant="primary" block onPress={() => setTransfer({ open: true, mode: 'deposit' })} />
+            <View style={{ width: 12 }} />
+            <Button label="Withdraw" icon="arrow-up" variant="light" block onPress={() => setTransfer({ open: true, mode: 'withdraw' })} />
+          </View>
         </View>
 
         {/* allocation */}
@@ -110,7 +124,7 @@ export default function PortfolioScreen() {
                   onPress={() => router.push(`/stock/${h.stockId}`)}
                   style={[styles.holding, i < holdings.length - 1 && styles.holdingDiv]}
                 >
-                  <StockLogo ticker={h.ticker} color={h.color} size={40} />
+                  <StockLogo ticker={h.ticker} color={h.color} size={40} logo={getLogo(h.stockId)} />
                   <View style={{ flex: 1, gap: 2 }}>
                     <Text style={styles.hTicker}>{h.ticker}</Text>
                     <Text style={styles.hShares}>
@@ -130,6 +144,11 @@ export default function PortfolioScreen() {
         </View>
         <View style={{ height: insets.bottom }} />
       </ScrollView>
+      <TransferSheet
+        visible={transfer.open}
+        onClose={() => setTransfer((t) => ({ ...t, open: false }))}
+        mode={transfer.mode}
+      />
     </View>
   );
 }
@@ -226,5 +245,9 @@ const styles = StyleSheet.create({
     fontFamily: F.mono,
     fontSize: 12,
     fontWeight: '700',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    marginTop: S.md,
   },
 });

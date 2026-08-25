@@ -47,8 +47,8 @@ export interface HoldingView extends Holding {
   portion: number;
 }
 
-export function getHoldings(): HoldingView[] {
-  const rows = HOLDINGS.map((h) => {
+export function getHoldings(list: Holding[] = HOLDINGS): HoldingView[] {
+  const rows = list.map((h) => {
     const s = getStock(h.stockId)!;
     const value = s.price * h.shares;
     const cost = h.avgPrice * h.shares;

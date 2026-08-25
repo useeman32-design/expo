@@ -1,5 +1,7 @@
 import { useId } from 'react';
-import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
+import Svg, { Path, Rect, Defs, LinearGradient, Stop } from 'react-native-svg';
+
+import type { Candle } from '@/utils';
 
 interface Point {
   x: number;
@@ -89,6 +91,66 @@ export function Chart({
         strokeLinejoin="round"
         strokeLinecap="round"
       />
+    </Svg>
+  );
+}
+
+/* ---------------- Candlestick ---------------- */
+export function Candlestick({
+  data,
+  width,
+  height,
+  upColor,
+  downColor,
+}: {
+  data: Candle[];
+  width: number;
+  height: number;
+  upColor: string;
+  downColor: string;
+}) {
+  if (data.length < 2) return null;
+  const padY = 6;
+  const lows = data.map((d) => d.l);
+  const highs = data.map((d) => d.h);
+  const min = Math.min(...lows);
+  const max = Math.max(...highs);
+  const range = max - min || 1;
+  const n = data.length;
+  const slot = width / n;
+  const bodyW = Math.max(2, slot * 0.62);
+
+  const y = (v: number) => padY + (1 - (v - min) / range) * (height - padY * 2);
+
+  return (
+    <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+      {data.map((d, i) => {
+        const cx = i * slot + slot / 2;
+        const isUp = d.c >= d.o;
+        const color = isUp ? upColor : downColor;
+        const bodyTop = y(Math.max(d.o, d.c));
+        const bodyH = Math.max(1.5, Math.abs(y(d.o) - y(d.c)));
+        return (
+          <g key={i}>
+            <Rect
+              x={cx - 0.6}
+              y={y(d.h)}
+              width={1.2}
+              height={Math.max(1, y(d.l) - y(d.h))}
+              fill={color}
+              opacity={0.9}
+            />
+            <Rect
+              x={cx - bodyW / 2}
+              y={bodyTop}
+              width={bodyW}
+              height={bodyH}
+              fill={color}
+              rx={1}
+            />
+          </g>
+        );
+      })}
     </Svg>
   );
 }

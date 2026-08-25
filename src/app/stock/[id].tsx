@@ -6,14 +6,23 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import type { OrderSide } from '@/types';
 import { Card, ScreenHeader, SectionTitle, Stat, StockLogo } from '@/components/primitives';
-import { Chart } from '@/components/Chart';
+import { Candlestick, Chart } from '@/components/Chart';
+import { TradeSheet } from '@/components/TradeSheet';
 import { getStock } from '@/services/marketData';
+import { getLogo } from '@/services/logos';
 import { C, F, R, S } from '@/theme';
-import { compact, genSpark, money, pct, price } from '@/utils';
+import { compact, genCandles, genSpark, money, pct, price } from '@/utils';
 
 const RANGES = ['1D', '1W', '1M', '3M', '1Y', '5Y'] as const;
 type Range = (typeof RANGES)[number];
+
+function hash(s: string) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
 
 export default function StockDetailScreen() {
   const router = useRouter();
@@ -22,18 +31,23 @@ export default function StockDetailScreen() {
   const stock = getStock(String(id));
   const [range, setRange] = useState<Range>('1M');
   const [watch, setWatch] = useState(false);
+  const [chartType, setChartType] = useState<'line' | 'candles'>('line');
+  const [trade, setTrade] = useState<{ open: boolean; side: OrderSide }>({
+    open: false,
+    side: 'Buy',
+  });
 
-  const cur = stock?.currency === 'NGN' ? '₦' : '$';
+  const chartW = Dimensions.get('window').width - S.xl * 2 - S.lg * 2;
 
   const chart = useMemo(() => {
     if (!stock) return [];
     const idx = RANGES.indexOf(range);
-    return genSpark(
-      hash(stock.id) + idx * 11,
-      40,
-      0.015 + idx * 0.004,
-      (stock.changePct / 100) * (0.3 + idx * 0.4),
-    );
+    return genSpark(hash(stock.id) + idx * 11, 40, 0.015 + idx * 0.004, (stock.changePct / 100) * (0.3 + idx * 0.4));
+  }, [stock, range]);
+
+  const candles = useMemo(() => {
+    if (!stock) return [];
+    return genCandles(hash(stock.id) + RANGES.indexOf(range) * 11, 44);
   }, [stock, range]);
 
   if (!stock) {
@@ -46,16 +60,14 @@ export default function StockDetailScreen() {
   }
 
   const up = stock.changePct >= 0;
+  const cur = stock.currency === 'NGN' ? '₦' : '$';
 
   return (
     <View style={styles.screen}>
       <StatusBar style="light" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 96 }}>
         {/* green header */}
-        <LinearGradient
-          colors={[C.hero1, C.hero2, C.hero3]}
-          style={styles.header}
-        >
+        <LinearGradient colors={[C.hero1, C.hero2, C.hero3]} style={styles.header}>
           <View style={styles.headerPad}>
             <View style={[styles.headerNav, { marginTop: insets.top + 8 }]}>
               <Pressable onPress={() => router.back()} style={styles.navBtn}>
@@ -67,12 +79,10 @@ export default function StockDetailScreen() {
             </View>
 
             <View style={styles.headerTitle}>
-              <StockLogo ticker={stock.ticker} color={C.white} size={44} />
+              <StockLogo ticker={stock.ticker} color={stock.color} size={44} logo={getLogo(stock.id)} />
               <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={styles.ticker}>{stock.ticker}</Text>
-                <Text style={styles.name} numberOfLines={1}>
-                  {stock.name}
-                </Text>
+                <Text style={styles.name} numberOfLines={1}>{stock.name}</Text>
               </View>
               <View style={styles.marketTag}>
                 <Text style={styles.marketTagText}>{stock.market}</Text>
@@ -86,8 +96,7 @@ export default function StockDetailScreen() {
                 <Text style={styles.whitePillText}>{pct(stock.changePct)}</Text>
               </View>
               <Text style={styles.changeText}>
-                {up ? '+' : ''}
-                {price(stock.changeAbs, cur)} ({pct(stock.changePct)}) Today
+                {up ? '+' : ''}{price(stock.changeAbs, cur)} ({pct(stock.changePct)}) Today
               </Text>
             </View>
           </View>
@@ -97,16 +106,39 @@ export default function StockDetailScreen() {
         <View style={styles.content}>
           {/* chart */}
           <Card pad={S.lg} radius={R.xl} style={{ paddingBottom: 0 }}>
+            <View style={styles.chartTypes}>
+              {(['line', 'candles'] as const).map((t) => (
+                <Pressable
+                  key={t}
+                  onPress={() => setChartType(t)}
+                  style={[styles.chartType, chartType === t && styles.chartTypeActive]}
+                >
+                  <Text style={[styles.chartTypeText, chartType === t && styles.chartTypeTextActive]}>
+                    {t === 'line' ? 'Line' : 'Candles'}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
             <View style={styles.chartBox}>
-              <Chart
-                data={chart}
-                width={Dimensions.get('window').width - S.xl * 2 - S.lg * 2}
-                height={170}
-                stroke={up ? C.positive : C.negative}
-                strokeWidth={2.4}
-                fill
-                fillFrom={up ? C.positive : C.negative}
-              />
+              {chartType === 'line' ? (
+                <Chart
+                  data={chart}
+                  width={chartW}
+                  height={170}
+                  stroke={up ? C.positive : C.negative}
+                  strokeWidth={2.4}
+                  fill
+                  fillFrom={up ? C.positive : C.negative}
+                />
+              ) : (
+                <Candlestick
+                  data={candles}
+                  width={chartW}
+                  height={170}
+                  upColor={C.positive}
+                  downColor={C.negative}
+                />
+              )}
             </View>
             <View style={styles.ranges}>
               {RANGES.map((r) => (
@@ -115,9 +147,7 @@ export default function StockDetailScreen() {
                   onPress={() => setRange(r)}
                   style={[styles.range, range === r && styles.rangeActive]}
                 >
-                  <Text style={[styles.rangeText, range === r && styles.rangeTextActive]}>
-                    {r}
-                  </Text>
+                  <Text style={[styles.rangeText, range === r && styles.rangeTextActive]}>{r}</Text>
                 </Pressable>
               ))}
             </View>
@@ -177,194 +207,69 @@ export default function StockDetailScreen() {
 
       {/* BUY / SELL bar */}
       <View style={styles.actionBar}>
-        <BuySellButton label="BUY" tone="green" />
+        <BuySellButton label="BUY" tone="green" onPress={() => setTrade({ open: true, side: 'Buy' })} />
         <View style={{ width: 12 }} />
-        <BuySellButton label="SELL" tone="red" />
+        <BuySellButton label="SELL" tone="red" onPress={() => setTrade({ open: true, side: 'Sell' })} />
       </View>
+
+      <TradeSheet
+        visible={trade.open}
+        onClose={() => setTrade((t) => ({ ...t, open: false }))}
+        stock={stock}
+        initialSide={trade.side}
+      />
     </View>
   );
 }
 
-function BuySellButton({ label, tone }: { label: string; tone: 'green' | 'red' }) {
+function BuySellButton({ label, tone, onPress }: { label: string; tone: 'green' | 'red'; onPress?: () => void }) {
   const bg = tone === 'green' ? C.green : C.negative;
   return (
     <Pressable
-      style={({ pressed }) => [
-        styles.bsBtn,
-        { backgroundColor: bg },
-        pressed && { opacity: 0.88 },
-      ]}
+      onPress={onPress}
+      style={({ pressed }) => [styles.bsBtn, { backgroundColor: bg }, pressed && { opacity: 0.88 }]}
     >
       <Text style={styles.bsText}>{label}</Text>
     </Pressable>
   );
 }
 
-function hash(s: string) {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-  return Math.abs(h);
-}
-
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
-  header: {
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-    overflow: 'hidden',
-  },
+  header: { borderBottomLeftRadius: 28, borderBottomRightRadius: 28, overflow: 'hidden' },
   headerPad: { paddingHorizontal: S.xl, paddingBottom: S.xl },
-  headerNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 48,
-  },
-  navBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  headerNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  navBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flexDirection: 'row', alignItems: 'center', marginTop: S.lg },
-  ticker: {
-    color: C.white,
-    fontFamily: F.sans,
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
-  name: {
-    color: 'rgba(255,255,255,0.85)',
-    fontFamily: F.sans,
-    fontSize: 13.5,
-    marginTop: 1,
-  },
-  marketTag: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: R.sm,
-  },
-  marketTagText: {
-    color: C.white,
-    fontFamily: F.mono,
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  price: {
-    color: C.white,
-    fontFamily: F.sans,
-    fontSize: 40,
-    fontWeight: '800',
-    letterSpacing: -1.3,
-    marginTop: S.md,
-  },
+  ticker: { color: C.white, fontFamily: F.sans, fontSize: 22, fontWeight: '800', letterSpacing: 0.3 },
+  name: { color: 'rgba(255,255,255,0.85)', fontFamily: F.sans, fontSize: 13.5, marginTop: 1 },
+  marketTag: { backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 9, paddingVertical: 4, borderRadius: R.sm },
+  marketTagText: { color: C.white, fontFamily: F.mono, fontSize: 11, fontWeight: '800' },
+  price: { color: C.white, fontFamily: F.sans, fontSize: 40, fontWeight: '800', letterSpacing: -1.3, marginTop: S.md },
   changeRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },
-  whitePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    backgroundColor: 'rgba(255,255,255,0.22)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: R.sm,
-  },
-  whitePillText: {
-    color: C.white,
-    fontFamily: F.mono,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  changeText: {
-    color: 'rgba(255,255,255,0.92)',
-    fontFamily: F.sans,
-    fontSize: 13,
-    fontWeight: '600',
-  },
+  whitePill: { flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: 'rgba(255,255,255,0.22)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: R.sm },
+  whitePillText: { color: C.white, fontFamily: F.mono, fontSize: 12, fontWeight: '700' },
+  changeText: { color: 'rgba(255,255,255,0.92)', fontFamily: F.sans, fontSize: 13, fontWeight: '600' },
   content: { paddingHorizontal: S.xl, marginTop: S.lg },
+  chartTypes: { flexDirection: 'row', gap: 8, marginBottom: S.md },
+  chartType: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: R.pill, backgroundColor: C.canvasAlt },
+  chartTypeActive: { backgroundColor: C.green },
+  chartTypeText: { color: C.muted, fontFamily: F.sans, fontSize: 12.5, fontWeight: '700' },
+  chartTypeTextActive: { color: C.white },
   chartBox: { alignItems: 'center', marginBottom: S.md },
-  ranges: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: C.canvasAlt,
-    borderRadius: R.pill,
-    padding: 4,
-    marginBottom: S.lg,
-  },
+  ranges: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: C.canvasAlt, borderRadius: R.pill, padding: 4, marginBottom: S.lg },
   range: { flex: 1, paddingVertical: 7, borderRadius: R.pill, alignItems: 'center' },
-  rangeActive: {
-    backgroundColor: C.white,
-    shadowColor: '#0A3D28',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 3,
-    elevation: 1,
-  },
-  rangeText: {
-    color: C.muted,
-    fontFamily: F.sans,
-    fontSize: 12.5,
-    fontWeight: '700',
-  },
+  rangeActive: { backgroundColor: C.white, shadowColor: '#0A3D28', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 1 },
+  rangeText: { color: C.muted, fontFamily: F.sans, fontSize: 12.5, fontWeight: '700' },
   rangeTextActive: { color: C.ink },
-  statRow: {
-    flexDirection: 'row',
-    paddingVertical: S.md,
-    borderBottomWidth: 1,
-    borderBottomColor: C.hairlineSoft,
-    gap: 12,
-  },
-  aboutText: {
-    color: C.ink2,
-    fontFamily: F.sans,
-    fontSize: 14.5,
-    lineHeight: 22,
-  },
-  newsTitle: {
-    color: C.ink,
-    fontFamily: F.sans,
-    fontSize: 14.5,
-    fontWeight: '600',
-    lineHeight: 20,
-  },
+  statRow: { flexDirection: 'row', paddingVertical: S.md, borderBottomWidth: 1, borderBottomColor: C.hairlineSoft, gap: 12 },
+  aboutText: { color: C.ink2, fontFamily: F.sans, fontSize: 14.5, lineHeight: 22 },
+  newsTitle: { color: C.ink, fontFamily: F.sans, fontSize: 14.5, fontWeight: '600', lineHeight: 20 },
   newsMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
-  newsSource: {
-    color: C.green,
-    fontFamily: F.sans,
-    fontSize: 12,
-    fontWeight: '700',
-  },
+  newsSource: { color: C.green, fontFamily: F.sans, fontSize: 12, fontWeight: '700' },
   newsDot: { color: C.faint },
-  newsTime: {
-    color: C.faint,
-    fontFamily: F.sans,
-    fontSize: 12,
-  },
-  actionBar: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    flexDirection: 'row',
-    paddingHorizontal: S.xl,
-    paddingTop: S.md,
-    paddingBottom: 24,
-    backgroundColor: 'rgba(244,246,245,0.96)',
-  },
-  bsBtn: {
-    flex: 1,
-    paddingVertical: 16,
-    borderRadius: R.md,
-    alignItems: 'center',
-  },
-  bsText: {
-    color: C.white,
-    fontFamily: F.sans,
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
+  newsTime: { color: C.faint, fontFamily: F.sans, fontSize: 12 },
+  actionBar: { position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', paddingHorizontal: S.xl, paddingTop: S.md, paddingBottom: 24, backgroundColor: 'rgba(244,246,245,0.96)' },
+  bsBtn: { flex: 1, paddingVertical: 16, borderRadius: R.md, alignItems: 'center' },
+  bsText: { color: C.white, fontFamily: F.sans, fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
 });

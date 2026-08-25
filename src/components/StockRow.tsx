@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 
 import type { Stock } from '@/types';
 import { price } from '@/utils';
+import { getLogo } from '@/services/logos';
 import { C, F, S } from '@/theme';
 import { ChangePill, StockLogo } from '@/components/primitives';
 import { Chart } from '@/components/Chart';
@@ -27,7 +28,7 @@ export function StockRow({
         pressed && { opacity: 0.6 },
       ]}
     >
-      <StockLogo ticker={stock.ticker} color={stock.color} size={42} />
+      <StockLogo ticker={stock.ticker} color={stock.color} size={42} logo={getLogo(stock.id)} />
       <View style={styles.info}>
         <Text style={styles.ticker}>{stock.ticker}</Text>
         <Text style={styles.name} numberOfLines={1}>

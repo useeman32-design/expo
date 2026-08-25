@@ -3,7 +3,8 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
 import { Card, Chip, ScreenHeader, StockLogo } from '@/components/primitives';
-import { getOrders } from '@/services/orders';
+import { useStore } from '@/store';
+import { getLogo } from '@/services/logos';
 import { getStock } from '@/services/marketData';
 import type { OrderStatus } from '@/types';
 import { C, F, R, S } from '@/theme';
@@ -18,8 +19,12 @@ const statusColor: Record<OrderStatus, string> = {
 };
 
 export default function OrdersScreen() {
+  const store = useStore();
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>('All');
-  const orders = useMemo(() => getOrders(filter as 'All' | OrderStatus), [filter]);
+  const orders = useMemo(() => {
+    const all = store.orders;
+    return filter === 'All' ? all : all.filter((o) => o.status === filter);
+  }, [filter, store.orders]);
 
   return (
     <View style={styles.screen}>
@@ -46,7 +51,7 @@ export default function OrdersScreen() {
                 const buy = o.side === 'Buy';
                 return (
                   <View key={o.id} style={[styles.row, i < orders.length - 1 && styles.rowDiv]}>
-                    {s ? <StockLogo ticker={s.ticker} color={s.color} size={38} /> : null}
+                    {s ? <StockLogo ticker={s.ticker} color={s.color} size={38} logo={getLogo(s.id)} /> : null}
                     <View style={{ flex: 1, gap: 3 }}>
                       <View style={styles.rowTop}>
                         <Text style={styles.ticker}>{s?.ticker ?? o.stockId}</Text>

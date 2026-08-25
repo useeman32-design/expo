@@ -117,7 +117,7 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
-        <Text style={styles.version}>Albarka · v1.0.0 (demo)</Text>
+        <Text style={styles.version}>StocksX · v1.0.0 (demo)</Text>
         <View style={{ height: insets.bottom }} />
       </ScrollView>
     </View>

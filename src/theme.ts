@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 
 /**
- * Albarka design system — premium light fintech.
+ * StocksX design system — premium light fintech.
  * Deep emerald hero, soft off-white canvas, white rounded cards, soft shadows.
  */
 

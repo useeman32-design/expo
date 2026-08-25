@@ -85,17 +85,23 @@ export default function LearnScreen() {
         <View style={{ paddingHorizontal: S.xl, marginTop: S.xxl }}>
           <SectionTitle title="Learning Categories" />
           <View style={styles.catGrid}>
-            {CAT_TILES.map((t) => (
-              <Pressable
-                key={t.label}
-                onPress={() => setCat(t.category)}
-                style={({ pressed }) => [styles.catTile, pressed && { opacity: 0.85 }]}
-              >
-                <View style={[styles.catIcon, { backgroundColor: `${t.color}1F` }]}>
-                  <Ionicons name={t.icon as never} size={20} color={t.color} />
-                </View>
-                <Text style={styles.catLabel}>{t.label}</Text>
-              </Pressable>
+            {Array.from({ length: Math.ceil(CAT_TILES.length / 3) }, (_, ri) =>
+              CAT_TILES.slice(ri * 3, ri * 3 + 3),
+            ).map((row, ri) => (
+              <View key={ri} style={styles.catRow}>
+                {row.map((t) => (
+                  <Pressable
+                    key={t.label}
+                    onPress={() => setCat(t.category)}
+                    style={({ pressed }) => [styles.catTile, pressed && { opacity: 0.85 }]}
+                  >
+                    <View style={[styles.catIcon, { backgroundColor: `${t.color}1F` }]}>
+                      <Ionicons name={t.icon as never} size={20} color={t.color} />
+                    </View>
+                    <Text style={styles.catLabel}>{t.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
             ))}
           </View>
         </View>
@@ -176,12 +182,14 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   catGrid: {
+    gap: S.md,
+  },
+  catRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: S.md,
   },
   catTile: {
-    width: '31.5%',
+    flex: 1,
     backgroundColor: C.white,
     borderRadius: R.lg,
     padding: S.lg,

@@ -86,3 +86,33 @@ export const isAndroid = Platform.OS === 'android';
 
 /** Demo USD→NGN rate used to show the mixed portfolio in one currency. */
 export const NGN_PER_USD = 1600;
+
+export interface Candle {
+  o: number;
+  h: number;
+  l: number;
+  c: number;
+}
+
+/** Generate plausible OHLC candle data for charts. */
+export function genCandles(seed: number, n = 44): Candle[] {
+  const rnd = mulberry32(seed);
+  let price = 100;
+  const out: Candle[] = [];
+  for (let i = 0; i < n; i++) {
+    const o = price;
+    const vol = 2.2;
+    const move = (rnd() - 0.48) * vol * 100;
+    const c = Math.max(20, o + move);
+    const wickUp = rnd() * vol * 50;
+    const wickDn = rnd() * vol * 50;
+    out.push({
+      o,
+      c,
+      h: Math.max(o, c) + wickUp,
+      l: Math.max(1, Math.min(o, c) - wickDn),
+    });
+    price = c;
+  }
+  return out;
+}

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Dimensions,
   Pressable,
@@ -26,6 +26,8 @@ import { StockRow } from '@/components/StockRow';
 import { IndexCard } from '@/components/IndexCard';
 import { LearnCard } from '@/components/LearnCard';
 import { QuickAction } from '@/components/QuickAction';
+import { TransferSheet } from '@/components/TransferSheet';
+import { useStore } from '@/store';
 import { getStock } from '@/services/marketData';
 import { getIndices } from '@/services/marketData';
 import { getPortfolio } from '@/services/portfolio';
@@ -41,7 +43,12 @@ const WATCH = ['mtnn', 'gtco', 'zenith', 'dangcem'];
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const store = useStore();
   const portfolio = useMemo(() => getPortfolio(), []);
+  const [transfer, setTransfer] = useState<{ open: boolean; mode: 'deposit' | 'withdraw' }>({
+    open: false,
+    mode: 'deposit',
+  });
   const indices = useMemo(() => getIndices().slice(0, 3), []);
   const watch = useMemo(() => WATCH.map((id) => getStock(id)!).filter(Boolean), []);
   const courses = useMemo(() => getCourses().filter((c) => !c.readTime || c.progress === 0).slice(0, 6), []);
@@ -152,7 +159,7 @@ export default function HomeScreen() {
         <View style={styles.quickRow}>
           <QuickAction label="Buy" icon="add" tone="green" onPress={() => router.push('/markets')} />
           <QuickAction label="Sell" icon="remove" tone="red" onPress={() => router.push('/portfolio')} />
-          <QuickAction label="Deposit" icon="arrow-down" tone="dark" onPress={() => router.push('/portfolio')} />
+          <QuickAction label="Deposit" icon="arrow-down" tone="dark" onPress={() => setTransfer({ open: true, mode: 'deposit' })} />
           <QuickAction label="More" icon="apps" tone="light" onPress={() => router.push('/profile')} />
         </View>
 
@@ -214,6 +221,11 @@ export default function HomeScreen() {
           </ScrollView>
         </Section>
       </ScrollView>
+      <TransferSheet
+        visible={transfer.open}
+        onClose={() => setTransfer((t) => ({ ...t, open: false }))}
+        mode={transfer.mode}
+      />
     </View>
   );
 }
