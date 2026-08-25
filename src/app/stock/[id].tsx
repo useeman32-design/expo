@@ -10,6 +10,7 @@ import { compact, pct, price } from '@/utils';
 import type { OrderSide } from '@/types';
 import { Card, ScreenHeader, SectionTitle, Stat, StockLogo } from '@/components/primitives';
 import { TradingViewChart } from '@/components/TradingViewChart';
+import { TIMEFRAME_ORDER, type Timeframe } from '@/services/chartData';
 import { TradeSheet } from '@/components/TradeSheet';
 import { getStock } from '@/services/marketData';
 import { getLogo } from '@/services/logos';
@@ -21,7 +22,8 @@ export default function StockDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const stock = getStock(String(id));
   const [watch, setWatch] = useState(false);
-  const [chartType, setChartType] = useState<'line' | 'candles'>('line');
+  const [chartType, setChartType] = useState<'line' | 'candles'>('candles');
+  const [timeframe, setTimeframe] = useState<Timeframe>('3M');
   const [trade, setTrade] = useState<{ open: boolean; side: OrderSide }>({
     open: false,
     side: 'Buy',
@@ -99,7 +101,18 @@ export default function StockDetailScreen() {
               <Text style={styles.liveTag}>● LIVE</Text>
             </View>
             <View style={{ marginTop: S.sm }}>
-              <TradingViewChart symbol={stock.tvSymbol} type={chartType} height={360} />
+              <TradingViewChart stock={stock} type={chartType} timeframe={timeframe} height={320} />
+            </View>
+            <View style={styles.ranges}>
+              {TIMEFRAME_ORDER.map((r) => (
+                <Pressable
+                  key={r}
+                  onPress={() => setTimeframe(r)}
+                  style={[styles.range, timeframe === r && styles.rangeActive]}
+                >
+                  <Text style={[styles.rangeText, timeframe === r && styles.rangeTextActive]}>{r}</Text>
+                </Pressable>
+              ))}
             </View>
           </Card>
 
@@ -207,6 +220,25 @@ const styles = StyleSheet.create({
   chartTypeText: { color: C.muted, fontFamily: F.sans, fontSize: 12.5, fontWeight: '700' },
   chartTypeTextActive: { color: C.white },
   liveTag: { color: C.positive, fontFamily: F.mono, fontSize: 11, fontWeight: '800' },
+  ranges: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: C.canvasAlt,
+    borderRadius: R.pill,
+    padding: 4,
+    marginTop: S.md,
+  },
+  range: { flex: 1, paddingVertical: 8, borderRadius: R.pill, alignItems: 'center' },
+  rangeActive: {
+    backgroundColor: C.white,
+    shadowColor: '#0A3D28',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  rangeText: { color: C.muted, fontFamily: F.sans, fontSize: 12.5, fontWeight: '700' },
+  rangeTextActive: { color: C.greenDark },
   statRow: { flexDirection: 'row', paddingVertical: S.md, borderBottomWidth: 1, borderBottomColor: C.hairlineSoft, gap: 12 },
   aboutText: { color: C.ink2, fontFamily: F.sans, fontSize: 14.5, lineHeight: 22 },
   newsTitle: { color: C.ink, fontFamily: F.sans, fontSize: 14.5, fontWeight: '600', lineHeight: 20 },

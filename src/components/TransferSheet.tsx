@@ -21,18 +21,18 @@ export function TransferSheet({
   const store = useStore();
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState(METHODS[0]);
-  const [err, setErr] = useState('');
-  const [success, setSuccess] = useState<{ open: boolean; title: string; sub?: string }>({
-    open: false,
-    title: '',
-  });
+  const [result, setResult] = useState<{
+    open: boolean;
+    status: 'success' | 'error';
+    title: string;
+    sub?: string;
+  }>({ open: false, status: 'success', title: '' });
 
   useEffect(() => {
     if (visible) {
       setAmount('');
       setMethod(METHODS[0]);
-      setErr('');
-      setSuccess({ open: false, title: '' });
+      setResult({ open: false, status: 'success', title: '' });
     }
   }, [visible]);
 
@@ -41,16 +41,16 @@ export function TransferSheet({
   const primary = isDeposit ? C.green : C.negative;
 
   const confirm = () => {
-    setErr('');
     const res = isDeposit ? store.deposit(amt) : store.withdraw(amt);
     if (res.ok) {
-      setSuccess({
+      setResult({
         open: true,
+        status: 'success',
         title: isDeposit ? 'Deposit complete!' : 'Withdrawal sent!',
         sub: `${money(amt)} · ${method}`,
       });
     } else {
-      setErr(res.msg);
+      setResult({ open: true, status: 'error', title: isDeposit ? 'Deposit failed' : 'Withdrawal failed', sub: res.msg });
     }
   };
 
@@ -61,11 +61,12 @@ export function TransferSheet({
       title={isDeposit ? 'Deposit' : 'Withdraw'}
       overlay={
         <SuccessOverlay
-          visible={success.open}
-          title={success.title}
-          subtitle={success.sub}
+          visible={result.open}
+          status={result.status}
+          title={result.title}
+          subtitle={result.sub}
           onDone={() => {
-            setSuccess({ open: false, title: '' });
+            setResult({ open: false, status: 'success', title: '' });
             onClose();
           }}
         />
@@ -115,7 +116,6 @@ export function TransferSheet({
         />
       </View>
 
-      {err ? <Text style={styles.errText}>{err}</Text> : null}
       <View style={{ marginTop: S.md }}>
         <Button
           label={isDeposit ? 'Deposit funds' : 'Withdraw funds'}

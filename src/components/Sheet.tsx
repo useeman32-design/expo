@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Modal, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Animated, Easing, Modal, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { Svg, Circle, Path } from 'react-native-svg';
 
 import { C, F, R, S, SH } from '@/theme';
 
@@ -59,51 +60,125 @@ export function SheetRow({
 }
 
 /**
- * Success animation shown inside a Sheet via the `overlay` prop.
- * A green check pops in with a spring, holds ~1.5s, then calls onDone.
+ * Result animation shown inside a Sheet via the `overlay` prop.
+ * A ring rolls (rotates) while it draws, then transforms into a filled badge
+ * and a check (success) or an X (failure) is drawn — then calls onDone.
  */
+const ACircle = Animated.createAnimatedComponent(Circle);
+const APath = Animated.createAnimatedComponent(Path) as any;
+const RING_R = 44;
+const RING_CIRC = 2 * Math.PI * RING_R;
+const CHECK_PATH = 'M30 52 L44 65 L72 36';
+const CROSS_PATH = 'M36 37 L64 63 M64 37 L36 63';
+
 export function SuccessOverlay({
   visible,
+  status = 'success',
   title,
   subtitle,
   onDone,
 }: {
   visible: boolean;
+  status?: 'success' | 'error';
   title: string;
   subtitle?: string;
   onDone: () => void;
 }) {
-  const scale = useRef(new Animated.Value(0.3)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
+  const rotate = useRef(new Animated.Value(0)).current;
+  const ringDraw = useRef(new Animated.Value(0)).current;
+  const badgeFill = useRef(new Animated.Value(0)).current;
+  const markDraw = useRef(new Animated.Value(0)).current;
+  const shake = useRef(new Animated.Value(0)).current;
+  const bg = useRef(new Animated.Value(0)).current;
+
+  const isError = status === 'error';
+  const color = isError ? C.negative : C.positive;
 
   useEffect(() => {
     if (!visible) return;
-    scale.setValue(0.3);
-    opacity.setValue(0);
-    const anim = Animated.parallel([
-      Animated.spring(scale, { toValue: 1, tension: 160, friction: 9, useNativeDriver: true }),
-      Animated.timing(opacity, { toValue: 1, duration: 160, useNativeDriver: true }),
-    ]);
-    anim.start();
-    const t = setTimeout(onDone, 1500);
-    return () => {
-      anim.stop();
-      clearTimeout(t);
-    };
+    rotate.setValue(0);
+    ringDraw.setValue(0);
+    badgeFill.setValue(0);
+    markDraw.setValue(0);
+    shake.setValue(0);
+    bg.setValue(0);
+
+    const native: Animated.CompositeAnimation[] = [
+      Animated.timing(bg, { toValue: 1, duration: 160, useNativeDriver: true }),
+      Animated.timing(rotate, {
+        toValue: 720,
+        duration: 950,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ];
+    if (isError) {
+      native.push(
+        Animated.sequence([
+          Animated.timing(shake, { toValue: 7, duration: 45, delay: 820, useNativeDriver: true }),
+          Animated.timing(shake, { toValue: -7, duration: 45, useNativeDriver: true }),
+          Animated.timing(shake, { toValue: 5, duration: 45, useNativeDriver: true }),
+          Animated.timing(shake, { toValue: -3, duration: 45, useNativeDriver: true }),
+          Animated.timing(shake, { toValue: 0, duration: 45, useNativeDriver: true }),
+        ]),
+      );
+    }
+
+    const js: Animated.CompositeAnimation[] = [
+      Animated.timing(ringDraw, {
+        toValue: 1,
+        duration: 950,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: false,
+      }),
+      Animated.timing(badgeFill, { toValue: 1, duration: 280, delay: 820, useNativeDriver: false }),
+      Animated.timing(markDraw, { toValue: 1, duration: 460, delay: 1020, useNativeDriver: false }),
+    ];
+
+    Animated.parallel(native).start();
+    Animated.parallel(js).start();
+    const t = setTimeout(onDone, 2150);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
   if (!visible) return null;
 
+  const rotStr = rotate.interpolate({ inputRange: [0, 720], outputRange: ['0deg', '720deg'] });
+  const ringOffset = ringDraw.interpolate({ inputRange: [0, 1], outputRange: [RING_CIRC, 0] });
+  const markOffset = markDraw.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
+
   return (
     <View style={succStyles.shade}>
-      <Animated.View style={[succStyles.card, { opacity, transform: [{ scale }] }]}>
-        <View style={succStyles.ring}>
-          <Ionicons name="checkmark" size={46} color={C.white} />
-        </View>
-        <Text style={succStyles.title}>{title}</Text>
-        {subtitle ? <Text style={succStyles.sub}>{subtitle}</Text> : null}
+      <Animated.View style={{ opacity: bg, transform: [{ translateX: shake }, { rotate: rotStr }] }}>
+        <Svg width={104} height={104} viewBox="0 0 100 100">
+          <ACircle
+            cx={50}
+            cy={50}
+            r={RING_R}
+            fill="none"
+            stroke={color}
+            strokeWidth={5}
+            strokeLinecap="round"
+            strokeDasharray={RING_CIRC}
+            strokeDashoffset={ringOffset}
+          />
+          <ACircle cx={50} cy={50} r={38} fill={color} fillOpacity={badgeFill} />
+          <APath
+            d={isError ? CROSS_PATH : CHECK_PATH}
+            stroke="#ffffff"
+            strokeWidth={7}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+            pathLength={1}
+            strokeDasharray={1}
+            strokeDashoffset={markOffset}
+          />
+        </Svg>
       </Animated.View>
+      <Text style={succStyles.title}>{title}</Text>
+      {subtitle ? <Text style={succStyles.sub}>{subtitle}</Text> : null}
     </View>
   );
 }
@@ -115,47 +190,26 @@ const succStyles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(10,30,22,0.55)',
+    backgroundColor: 'rgba(10,30,22,0.62)',
     alignItems: 'center',
     justifyContent: 'center',
     pointerEvents: 'none',
     elevation: 80,
   },
-  card: {
-    backgroundColor: C.white,
-    borderRadius: R.xxl,
-    paddingHorizontal: S.xxl,
-    paddingVertical: S.xxl,
-    alignItems: 'center',
-    width: 264,
-    shadowColor: '#0A3D28',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.22,
-    shadowRadius: 28,
-    elevation: 90,
-  },
-  ring: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    backgroundColor: C.green,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: S.md,
-  },
   title: {
-    color: C.ink,
+    color: C.white,
     fontFamily: F.sans,
-    fontSize: 20,
+    fontSize: 21,
     fontWeight: '800',
     letterSpacing: -0.3,
+    marginTop: S.lg,
   },
   sub: {
-    color: C.muted,
+    color: 'rgba(255,255,255,0.82)',
     fontFamily: F.sans,
     fontSize: 13.5,
     fontWeight: '600',
-    marginTop: 4,
+    marginTop: 5,
     textAlign: 'center',
   },
 });

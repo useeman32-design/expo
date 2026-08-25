@@ -26,11 +26,12 @@ export function TradeSheet({
   const [type, setType] = useState<'Market' | 'Limit'>('Market');
   const [qty, setQty] = useState('1');
   const [limit, setLimit] = useState('');
-  const [err, setErr] = useState('');
-  const [success, setSuccess] = useState<{ open: boolean; title: string; sub?: string }>({
-    open: false,
-    title: '',
-  });
+  const [result, setResult] = useState<{
+    open: boolean;
+    status: 'success' | 'error';
+    title: string;
+    sub?: string;
+  }>({ open: false, status: 'success', title: '' });
 
   useEffect(() => {
     if (visible) {
@@ -38,8 +39,7 @@ export function TradeSheet({
       setType('Market');
       setQty('1');
       setLimit(stock ? String(stock.price) : '');
-      setErr('');
-      setSuccess({ open: false, title: '' });
+      setResult({ open: false, status: 'success', title: '' });
     }
   }, [visible, initialSide, stock]);
 
@@ -53,19 +53,19 @@ export function TradeSheet({
   const setQtyN = (v: number) => setQty(String(Math.max(0, v)));
 
   const confirm = () => {
-    setErr('');
     const res =
       side === 'Buy'
         ? store.buy(stock.id, n, execPrice)
         : store.sell(stock.id, n, execPrice);
     if (res.ok) {
-      setSuccess({
+      setResult({
         open: true,
+        status: 'success',
         title: side === 'Buy' ? 'Order filled!' : 'Order sold!',
         sub: `${n} ${stock.ticker} · ${money(total, cur)}`,
       });
     } else {
-      setErr(res.msg);
+      setResult({ open: true, status: 'error', title: 'Order failed', sub: res.msg });
     }
   };
 
@@ -78,11 +78,12 @@ export function TradeSheet({
       title={side === 'Buy' ? 'Buy' : 'Sell'}
       overlay={
         <SuccessOverlay
-          visible={success.open}
-          title={success.title}
-          subtitle={success.sub}
+          visible={result.open}
+          status={result.status}
+          title={result.title}
+          subtitle={result.sub}
           onDone={() => {
-            setSuccess({ open: false, title: '' });
+            setResult({ open: false, status: 'success', title: '' });
             onClose();
           }}
         />
@@ -178,7 +179,6 @@ export function TradeSheet({
         />
       </View>
 
-      {err ? <Text style={styles.errText}>{err}</Text> : null}
       <View style={{ marginTop: S.md }}>
         <Button
           label={`Confirm ${side} · ${money(total, cur)}`}
