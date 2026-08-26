@@ -32,17 +32,23 @@ export function HiddenAmount({
   const dark = mode === 'dark';
   const [size, setSize] = useState({ w: 0, h: 0 });
 
-  // pill geometry — the patch always extends past the text so every
-  // digit sits well inside the blurred region
-  const padX = Math.max(10, Math.round(size.w * 0.05));
-  const padY = Math.max(4, Math.round(size.h * 0.12));
+  // pill geometry — the patch overshoots the digits generously on every
+  // side; that padding ring is where the blur + sheen fade to nothing,
+  // so every digit sits inside the full-strength core
+  const padX = Math.max(18, Math.round(size.w * 0.14));
+  const padY = Math.max(6, Math.round(size.h * 0.18));
   const W = size.w + padX * 2;
   const H = size.h + padY * 2;
   const rx = Math.round(Math.min(H / 2, 18));
 
-  // glass sheen strength + rim opacity per theme
+  // glass sheen strength per theme (feathered, no rim — edges must vanish)
   const sheen = dark ? 0.16 : 0.38;
-  const rim = dark ? 0.2 : 0.7;
+
+  // the blur is feathered with a radial mask: fully applied over the text
+  // (core ~78%), dissolving to nothing at the patch boundary in every
+  // direction — no visible shape edge anywhere
+  const featherMask =
+    'radial-gradient(ellipse closest-side at 50% 50%, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 78%, rgba(0,0,0,0.55) 90%, rgba(0,0,0,0) 100%)';
 
   return (
     <View
@@ -59,8 +65,10 @@ export function HiddenAmount({
           style={{ position: 'absolute', left: -padX, top: -padY, width: W, height: H }}
           pointerEvents="none"
         >
-          {/* pure backdrop blur — tint-free on web (expo-blur always paints
-              a colour layer on web, which is what made it look like a patch) */}
+          {/* pure backdrop blur, feathered by a radial mask so the blur
+              itself fades out in every direction — tint-free on web
+              (expo-blur always paints a colour layer on web, which is
+              what made it look like a patch) */}
           {Platform.OS === 'web' ? (
             createElement('div', {
               style: {
@@ -69,9 +77,11 @@ export function HiddenAmount({
                 left: 0,
                 width: W,
                 height: H,
-                borderRadius: rx,
+                borderRadius: rx, // graceful fallback if masks unsupported
                 backdropFilter: 'blur(18px) saturate(160%)',
                 WebkitBackdropFilter: 'blur(18px) saturate(160%)',
+                maskImage: featherMask,
+                WebkitMaskImage: featherMask,
               },
             })
           ) : (
@@ -83,7 +93,7 @@ export function HiddenAmount({
             />
           )}
 
-          {/* feathered glass sheen + hairline rim */}
+          {/* feathered glass sheen — soft white glow that dissolves with the blur */}
           <Svg width={W} height={H} style={{ position: 'absolute', top: 0, left: 0 }}>
             <Defs>
               <RadialGradient id="sx-frost-glass" cx="50%" cy="50%" r="50%">
@@ -94,17 +104,6 @@ export function HiddenAmount({
               </RadialGradient>
             </Defs>
             <Rect x="0" y="0" width={W} height={H} rx={rx} fill="url(#sx-frost-glass)" />
-            <Rect
-              x="0.5"
-              y="0.5"
-              width={W - 1}
-              height={H - 1}
-              rx={Math.max(0, rx - 0.5)}
-              fill="none"
-              stroke="#FFFFFF"
-              strokeOpacity={rim}
-              strokeWidth={1}
-            />
           </Svg>
         </View>
       ) : null}
