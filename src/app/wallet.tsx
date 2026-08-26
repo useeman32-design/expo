@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 
 import { Card, ScreenHeader } from '@/components/primitives';
 import { KIND_META, ReceiptModal } from '@/components/ReceiptModal';
+import { BalanceEyeButton, HiddenAmount } from '@/components/HiddenAmount';
 import { useStore } from '@/store';
 import { TRANSACTIONS } from '@/services/wallet';
 import { money } from '@/utils';
@@ -48,8 +49,11 @@ export default function WalletScreen() {
         {/* balance card */}
         <View style={{ paddingHorizontal: S.xl, marginTop: S.sm }}>
           <Card pad={S.xl} radius={R.xl}>
-            <Text style={styles.balanceLabel}>Available cash</Text>
-            <Text style={styles.balance}>{money(cash)}</Text>
+            <View style={styles.balanceLabelRow}>
+              <Text style={styles.balanceLabel}>Available cash</Text>
+              <BalanceEyeButton />
+            </View>
+            <HiddenAmount value={cash} style={styles.balance} />
             <View style={styles.miniStats}>
               <View style={styles.miniStat}>
                 <Ionicons name="arrow-down" size={13} color={C.green} />
@@ -179,6 +183,7 @@ export default function WalletScreen() {
 const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   balanceLabel: { color: C.muted, fontFamily: F.sans, fontSize: 13 },
+  balanceLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   balance: {
     color: C.ink,
     fontFamily: F.display,

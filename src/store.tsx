@@ -32,6 +32,9 @@ interface StoreValue {
   toast: Toast | null;
   /** watchlist (persisted) */
   watchlist: string[];
+  /** hide/show balances (persisted) — frosts money values across the app */
+  balanceHidden: boolean;
+  toggleBalanceHidden: () => void;
   toggleWatch: (stockId: string) => void;
   /** price alerts (persisted) */
   alerts: PriceAlert[];
@@ -56,6 +59,7 @@ let toastId = 0;
 const KEY_WATCH = '@stocksx/watchlist';
 const KEY_ALERTS = '@stocksx/alerts';
 const KEY_RULES = '@stocksx/rules';
+const KEY_BALANCE_HIDDEN = '@stocksx/balanceHidden';
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [cash, setCash] = useState(PORTFOLIO.cash);
@@ -65,23 +69,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [rules, setRules] = useState<TradeRule[]>([]);
+  const [balanceHidden, setBalanceHidden] = useState(false);
 
   // restore + persist watchlist & alerts
   useEffect(() => {
     (async () => {
       try {
-        const [w, a, rl] = await Promise.all([
+        const [w, a, rl, bh] = await Promise.all([
           AsyncStorage.getItem(KEY_WATCH),
           AsyncStorage.getItem(KEY_ALERTS),
           AsyncStorage.getItem(KEY_RULES),
+          AsyncStorage.getItem(KEY_BALANCE_HIDDEN),
         ]);
         if (w) setWatchlist(JSON.parse(w) as string[]);
         if (a) setAlerts(JSON.parse(a) as PriceAlert[]);
         if (rl) setRules(JSON.parse(rl) as TradeRule[]);
+        if (bh === '1') setBalanceHidden(true);
       } catch {
         /* ignore */
       }
     })();
+  }, []);
+  const toggleBalanceHidden = useCallback(() => {
+    setBalanceHidden((h) => {
+      AsyncStorage.setItem(KEY_BALANCE_HIDDEN, h ? '0' : '1').catch(() => undefined);
+      return !h;
+    });
   }, []);
   const persistWatch = (list: string[]) => {
     setWatchlist(list);
@@ -274,6 +287,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     () => ({
       cash, holdings, orders, toast,
       watchlist, toggleWatch,
+      balanceHidden, toggleBalanceHidden,
       alerts, addAlert, removeAlert, toggleAlert,
       rules, addRule, removeRule, toggleRule,
       buy, sell, deposit, withdraw, clearToast,
@@ -281,6 +295,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [
       cash, holdings, orders, toast,
       watchlist, toggleWatch,
+      balanceHidden, toggleBalanceHidden,
       alerts, addAlert, removeAlert, toggleAlert,
       rules, addRule, removeRule, toggleRule,
       buy, sell, deposit, withdraw, clearToast,

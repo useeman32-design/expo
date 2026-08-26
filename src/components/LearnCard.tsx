@@ -41,19 +41,21 @@ export function LearnCard({
   );
 }
 
-const base = {
-  backgroundColor: C.card,
-  borderRadius: R.lg,
-  padding: S.lg,
-  gap: 8,
-  shadowColor: '#0A3D28',
-  shadowOffset: { width: 0, height: 3 },
-  shadowOpacity: 0.05,
-  shadowRadius: 10,
-  elevation: 2,
-};
-
-const makeStyles = () => StyleSheet.create({
+const makeStyles = () => {
+  // NOTE: base must be rebuilt inside the factory — a module-level const would
+  // freeze the light palette and stop the card following theme switches
+  const base = {
+    backgroundColor: C.card,
+    borderRadius: R.lg,
+    padding: S.lg,
+    gap: 8,
+    shadowColor: '#0A3D28',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  };
+  return StyleSheet.create({
   card: { ...base },
   hCard: { ...base, width: 180 },
   icon: {
@@ -88,6 +90,7 @@ const makeStyles = () => StyleSheet.create({
     height: 5,
     borderRadius: 3,
   },
-});
+  });
+};
 let styles = makeStyles();
 registerStyles(() => { styles = makeStyles(); });

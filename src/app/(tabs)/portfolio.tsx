@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Button, Card, ChangePill, ScreenHeader, SectionTitle, Stat, StockLogo } from '@/components/primitives';
 import { TransferSheet } from '@/components/TransferSheet';
+import { BalanceEyeButton, HiddenAmount } from '@/components/HiddenAmount';
 import { Donut, DonutLegend } from '@/components/Donut';
 import { useStore } from '@/store';
 import { getLogo } from '@/services/logos';
@@ -46,8 +47,11 @@ export default function PortfolioScreen() {
         {/* summary */}
         <View style={{ paddingHorizontal: S.xl, marginTop: S.sm }}>
           <Card pad={S.xl} radius={R.xl}>
-            <Text style={styles.sumLabel}>Total Portfolio Value</Text>
-            <Text style={styles.sumValue}>{money(p.totalValue)}</Text>
+            <View style={styles.sumLabelRow}>
+              <Text style={styles.sumLabel}>Total Portfolio Value</Text>
+              <BalanceEyeButton />
+            </View>
+            <HiddenAmount value={p.totalValue} style={styles.sumValue} />
             <View style={styles.sumChange}>
               <ChangePill value={p.todayPct} />
               <Text style={styles.sumChangeText}>
@@ -176,6 +180,7 @@ const makeStyles = () => StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
+  sumLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   sumLabel: {
     color: C.muted,
     fontFamily: F.sans,

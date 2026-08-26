@@ -1,7 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 
+import { useAppearance } from '@/appearance';
 import { C, F, R, S, SH, registerStyles } from '@/theme';
 
 type IconName = keyof typeof Ionicons.glyphMap;
@@ -31,9 +33,27 @@ interface TabBarProps {
 }
 
 function FloatingTabBar({ state, navigation }: TabBarProps) {
+  const { mode } = useAppearance();
+  const dark = mode === 'dark';
   return (
     <View style={styles.wrap} pointerEvents="box-none">
       <View style={styles.bar}>
+        {/* frosted glass, WhatsApp-on-iPhone style: real blur of whatever
+            scrolls beneath the bar, plus a translucent theme tint on top */}
+        <BlurView
+          intensity={dark ? 42 : 58}
+          tint={dark ? 'dark' : 'light'}
+          experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : undefined}
+          style={StyleSheet.absoluteFill}
+        />
+        <View
+          style={[
+            styles.glassTint,
+            { backgroundColor: dark ? 'rgba(13,18,15,0.62)' : 'rgba(255,255,255,0.55)' },
+            { borderColor: dark ? 'rgba(255,255,255,0.08)' : 'rgba(10,61,40,0.10)' },
+          ]}
+          pointerEvents="none"
+        />
         {state.routes.map((route, i) => {
           const tab = TABS.find((t) => t.name === route.name)!;
           const active = i === state.index;
@@ -95,11 +115,21 @@ const makeStyles = () => StyleSheet.create({
   },
   bar: {
     flexDirection: 'row',
-    backgroundColor: C.surface,
+    backgroundColor: 'transparent',
     borderRadius: R.xxl,
     paddingVertical: 10,
     paddingHorizontal: S.sm,
+    overflow: 'hidden',
     ...SH.float,
+  },
+  glassTint: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderWidth: 1,
+    borderRadius: R.xxl,
   },
   item: {
     flex: 1,

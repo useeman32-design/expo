@@ -27,6 +27,7 @@ import { IndexCard } from '@/components/IndexCard';
 import { LearnCard } from '@/components/LearnCard';
 import { QuickAction } from '@/components/QuickAction';
 import { TransferSheet } from '@/components/TransferSheet';
+import { BalanceEyeButton, HiddenAmount } from '@/components/HiddenAmount';
 import { useStore } from '@/store';
 import { getStock } from '@/services/marketData';
 import { getIndices } from '@/services/marketData';
@@ -107,8 +108,11 @@ export default function HomeScreen() {
 
             {/* portfolio value + chart (lower portion) */}
             <View style={styles.heroValueBlock}>
-              <Text style={styles.heroLabel}>Total Portfolio Value</Text>
-              <Text style={styles.heroValue}>{money(portfolio.totalValue)}</Text>
+              <View style={styles.heroLabelRow}>
+                <Text style={styles.heroLabel}>Total Portfolio Value</Text>
+                <BalanceEyeButton light />
+              </View>
+              <HiddenAmount value={portfolio.totalValue} style={styles.heroValue} />
               <View style={styles.heroChangeRow}>
                 <View style={[styles.whitePill, !upTodayPct && styles.whitePillDown]}>
                   <Ionicons name={upTodayPct ? 'caret-up' : 'caret-down'} size={11} color={C.white} />
@@ -144,7 +148,7 @@ export default function HomeScreen() {
           <View style={styles.bridgeRow}>
             <View style={styles.bridgeCol}>
               <Text style={styles.bridgeLabel}>Buying Power</Text>
-              <Text style={styles.bridgeValue}>{money(portfolio.cash)}</Text>
+              <HiddenAmount value={portfolio.cash} style={styles.bridgeValue} />
             </View>
             <View style={styles.bridgeDivider} />
             <View style={styles.bridgeCol}>
@@ -296,6 +300,7 @@ const makeStyles = () => StyleSheet.create({
     fontWeight: '700',
   },
   heroValueBlock: { gap: 6 },
+  heroLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   heroLabel: {
     color: 'rgba(255,255,255,0.8)',
     fontFamily: F.sans,

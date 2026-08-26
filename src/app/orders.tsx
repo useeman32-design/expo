@@ -13,12 +13,9 @@ import { price } from '@/utils';
 
 const FILTERS = ['All', 'Open', 'Completed', 'Settled', 'Cancelled'] as const;
 
-const statusColor: Record<OrderStatus, string> = {
-  Open: '#F6A623',
-  Completed: '#1F7AE0',
-  Settled: C.positive,
-  Cancelled: C.negative,
-};
+/** status -> accent colour (function so it follows theme switches) */
+const statusColor = (s: OrderStatus): string =>
+  s === 'Open' ? '#F6A623' : s === 'Completed' ? '#1F7AE0' : s === 'Settled' ? C.positive : C.negative;
 
 export default function OrdersScreen() {
   const router = useRouter();
@@ -81,8 +78,8 @@ export default function OrdersScreen() {
                         {o.qty} shares · {price(o.price, '₦')} · {o.time}
                       </Text>
                     </View>
-                    <View style={[styles.status, { backgroundColor: `${statusColor[o.status]}1F` }]}>
-                      <Text style={[styles.statusText, { color: statusColor[o.status] }]}>
+                    <View style={[styles.status, { backgroundColor: `${statusColor(o.status)}1F` }]}>
+                      <Text style={[styles.statusText, { color: statusColor(o.status) }]}>
                         {o.status}
                       </Text>
                     </View>
