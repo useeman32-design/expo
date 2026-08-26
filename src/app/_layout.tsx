@@ -5,6 +5,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { C, F } from '@/theme';
 import { StoreProvider } from '@/store';
 import { AuthProvider, useAuth } from '@/auth';
+import { KycProvider } from '@/kyc';
 import { Toast } from '@/components/Toast';
 
 // Web typography: self-hosted variable fonts (public/fonts), matching the
@@ -91,10 +92,12 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <StoreProvider>
-        <RootNavigator />
-        <Toast />
-      </StoreProvider>
+      <KycProvider>
+        <StoreProvider>
+          <RootNavigator />
+          <Toast />
+        </StoreProvider>
+      </KycProvider>
     </AuthProvider>
   );
 }

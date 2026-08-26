@@ -10,23 +10,28 @@ import {
   getIndices,
   getLosers,
   getMostActive,
+  getStock,
   getStocks,
   getTrending,
   searchStocks,
 } from '@/services/marketData';
+import { useStore } from '@/store';
 import { C, F, R, S } from '@/theme';
 
-const TABS = ['Trending', 'Top Gainers', 'Top Losers', 'Most Active'] as const;
+const TABS = ['Watchlist', 'Trending', 'Top Gainers', 'Top Losers', 'Most Active'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function MarketsScreen() {
   const [tab, setTab] = useState<Tab>('Trending');
   const [q, setQ] = useState('');
   const indices = useMemo(() => getIndices().slice(0, 3), []);
+  const { watchlist } = useStore();
 
   const list = useMemo(() => {
     if (q.trim()) return searchStocks(q);
     switch (tab) {
+      case 'Watchlist':
+        return watchlist.map((id) => getStock(id)).filter((s) => s !== undefined);
       case 'Trending':
         return getTrending(20);
       case 'Top Gainers':
@@ -38,7 +43,7 @@ export default function MarketsScreen() {
       default:
         return getStocks();
     }
-  }, [tab, q]);
+  }, [tab, q, watchlist]);
 
   return (
     <View style={styles.screen}>
@@ -90,8 +95,15 @@ export default function MarketsScreen() {
               list.map((s, i) => (
                 <StockRow key={s.id} stock={s} last={i === list.length - 1} />
               ))
-            ) : (
+            ) : q.trim() ? (
               <Text style={styles.empty}>No stocks found for “{q}”.</Text>
+            ) : (
+              <View style={styles.emptyWatch}>
+                <Text style={styles.empty}>Nothing on your watchlist yet.</Text>
+                <Text style={styles.emptyHint}>
+                  Tap the ★ on any stock below to track it here.
+                </Text>
+              </View>
             )}
           </Card>
           <Text style={styles.note}>
@@ -137,4 +149,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: S.md,
   },
+  emptyWatch: { alignItems: 'center', paddingVertical: 24, gap: 4 },
+  emptyHint: { color: C.faint, fontFamily: F.sans, fontSize: 12.5 },
 });

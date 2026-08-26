@@ -7,17 +7,29 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Avatar, Card, ScreenHeader, SectionTitle } from '@/components/primitives';
 import { useAuth } from '@/auth';
+import { useKyc } from '@/kyc';
 import { getPortfolio } from '@/services/portfolio';
 import { C, F, R, S, SH } from '@/theme';
 import { money } from '@/utils';
 
 const MENU = [
   { icon: 'receipt-outline', label: 'Orders', color: '#0E8A57', route: '/orders' },
-  { icon: 'eye-outline', label: 'Watchlist', color: '#7C5CFF', route: '/markets' },
-  { icon: 'card-outline', label: 'Deposits & Withdrawals', color: '#11A06B', route: '' },
-  { icon: 'shield-checkmark-outline', label: 'KYC & Verification', color: '#F6A623', route: '' },
+  { icon: 'eye-outline', label: 'Watchlist', color: '#7C5CFF', route: '/watchlist' },
+  { icon: 'card-outline', label: 'Wallet & Transactions', color: '#11A06B', route: '/wallet' },
+  { icon: 'shield-checkmark-outline', label: 'KYC & Verification', color: '#F6A623', route: '/kyc' },
+  { icon: 'cash-outline', label: 'Dividends', color: '#0E9F5E', route: '/dividends' },
   { icon: 'notifications-outline', label: 'Notifications', color: '#3DDC97', route: '/notifications' },
-  { icon: 'help-circle-outline', label: 'Help & Support', color: '#DD4B3E', route: '' },
+  { icon: 'bell-outline', label: 'Price Alerts', color: '#1F7AE0', route: '/alerts' },
+  { icon: 'moon-outline', label: 'Sharia Screening', color: '#0A6B41', route: '/sharia' },
+  { icon: 'gift-outline', label: 'Invite Friends', color: '#DD4B3E', route: '/referral' },
+  { icon: 'help-circle-outline', label: 'Help & Support', color: '#3DDC97', route: '/support' },
+];
+
+const MENU2 = [
+  { icon: 'business-outline', label: 'Bank Accounts', color: '#1F7AE0', route: '/bank-accounts' },
+  { icon: 'lock-closed-outline', label: 'Security', color: '#0E8A57', route: '/security' },
+  { icon: 'person-outline', label: 'Personal Info', color: '#F6A623', route: '/personal-info' },
+  { icon: 'document-text-outline', label: 'Legal & Policies', color: '#6C7771', route: '/legal' },
 ];
 
 export default function ProfileScreen() {
@@ -25,6 +37,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const p = getPortfolio();
   const { user, signOut } = useAuth();
+  const { kyc, verified } = useKyc();
   const [hausa, setHausa] = useState(false);
   const initial = (user?.name ?? 'U').charAt(0).toUpperCase();
 
@@ -44,12 +57,20 @@ export default function ProfileScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.userName}>{user?.name ?? 'Usman Abdullahi'}</Text>
                 <Text style={styles.userEmail}>{user?.email ?? 'usman.abdullahi@email.com'}</Text>
-                <View style={styles.verified}>
-                  <Ionicons name="shield-checkmark" size={13} color={C.green} />
-                  <Text style={styles.verifiedText}>
-                    {user?.guest ? 'Guest mode' : 'KYC Verified'}
+                <Pressable onPress={() => router.push('/kyc' as never)} style={styles.verified}>
+                  <Ionicons
+                    name={verified ? 'shield-checkmark' : 'shield-half-outline'}
+                    size={13}
+                    color={verified ? C.green : '#F6A623'}
+                  />
+                  <Text style={[styles.verifiedText, !verified && { color: '#F6A623' }]}>
+                    {user?.guest
+                      ? 'Guest mode'
+                      : verified
+                        ? 'KYC Verified'
+                        : `Verify account · Tier ${1 + [kyc.bvnVerified, kyc.ninVerified, kyc.documentVerified].filter(Boolean).length} of 3`}
                   </Text>
-                </View>
+                </Pressable>
               </View>
             </View>
             <View style={styles.userStats}>
@@ -99,6 +120,30 @@ export default function ProfileScreen() {
                 style={({ pressed }) => [
                   styles.menuRow,
                   i < MENU.length - 1 && styles.menuDiv,
+                  pressed && { opacity: 0.6 },
+                ]}
+              >
+                <View style={[styles.menuIcon, { backgroundColor: `${m.color}1F` }]}>
+                  <Ionicons name={m.icon as never} size={18} color={m.color} />
+                </View>
+                <Text style={styles.menuLabel}>{m.label}</Text>
+                <Ionicons name="chevron-forward" size={16} color={C.faint} />
+              </Pressable>
+            ))}
+          </Card>
+        </View>
+
+        {/* preferences & legal */}
+        <View style={{ paddingHorizontal: S.xl, marginTop: S.xxl }}>
+          <SectionTitle title="Preferences & Legal" />
+          <Card pad={S.xs} radius={R.xl}>
+            {MENU2.map((m, i) => (
+              <Pressable
+                key={m.label}
+                onPress={() => router.push(m.route as never)}
+                style={({ pressed }) => [
+                  styles.menuRow,
+                  i < MENU2.length - 1 && styles.menuDiv,
                   pressed && { opacity: 0.6 },
                 ]}
               >

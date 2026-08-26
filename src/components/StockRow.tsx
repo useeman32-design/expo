@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 import type { Stock } from '@/types';
 import { price } from '@/utils';
@@ -7,6 +8,7 @@ import { getLogo } from '@/services/logos';
 import { C, F, S } from '@/theme';
 import { ChangePill, StockLogo } from '@/components/primitives';
 import { Chart } from '@/components/Chart';
+import { useStore } from '@/store';
 
 export function StockRow({
   stock,
@@ -18,6 +20,8 @@ export function StockRow({
   showSpark?: boolean;
 }) {
   const router = useRouter();
+  const { watchlist, toggleWatch } = useStore();
+  const watched = watchlist.includes(stock.id);
   const up = stock.changePct >= 0;
   return (
     <Pressable
@@ -53,6 +57,19 @@ export function StockRow({
         <Text style={styles.price}>{price(stock.price, stock.currency === 'NGN' ? '₦' : '$')}</Text>
         <ChangePill value={stock.changePct} />
       </View>
+
+      <Pressable
+        onPress={() => toggleWatch(stock.id)}
+        hitSlop={8}
+        style={styles.star}
+        accessibilityLabel={watched ? 'Remove from watchlist' : 'Add to watchlist'}
+      >
+        <Ionicons
+          name={watched ? 'star' : 'star-outline'}
+          size={19}
+          color={watched ? '#F6A623' : C.faint}
+        />
+      </Pressable>
     </Pressable>
   );
 }
@@ -83,6 +100,7 @@ const styles = StyleSheet.create({
   },
   spark: { width: 50, alignItems: 'center' },
   right: { alignItems: 'flex-end', gap: 3, minWidth: 78 },
+  star: { paddingLeft: 2, paddingVertical: 6 },
   price: {
     color: C.ink,
     fontFamily: F.mono,

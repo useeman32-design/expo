@@ -53,7 +53,7 @@ export interface Holding {
 
 export type OrderSide = 'Buy' | 'Sell';
 export type OrderType = 'Market' | 'Limit';
-export type OrderStatus = 'Open' | 'Completed' | 'Cancelled';
+export type OrderStatus = 'Open' | 'Completed' | 'Settled' | 'Cancelled';
 
 export interface Order {
   id: string;
@@ -64,6 +64,12 @@ export interface Order {
   price: number;
   status: OrderStatus;
   time: string;
+  // lifecycle / receipt details (production: from the broker adapter)
+  filledPrice?: number;
+  settlementDate?: string; // T+3
+  fee?: number;
+  reference?: string;
+  cscs?: string; // CSCS account number
 }
 
 export interface Course {
@@ -106,4 +112,90 @@ export interface NotificationItem {
   time: string;
   read: boolean;
   ticker?: string;
+}
+
+/* ================= KYC / Verification ================= */
+
+export type KycTier = 1 | 2 | 3;
+export type KycStep = 'bvn' | 'nin' | 'document';
+
+export interface KycState {
+  tier: KycTier; // highest completed tier
+  bvnVerified: boolean;
+  ninVerified: boolean;
+  documentVerified: boolean;
+  phone: string;
+  updatedAt: string | null;
+}
+
+/* ================= Wallet ledger ================= */
+
+export type TxKind =
+  | 'deposit'
+  | 'withdrawal'
+  | 'buy'
+  | 'sell'
+  | 'dividend'
+  | 'fee'
+  | 'refund';
+
+export interface WalletTransaction {
+  id: string;
+  kind: TxKind;
+  amount: number; // signed: + credit, - debit
+  balanceAfter: number;
+  method?: string; // Card · Paystack, Bank Transfer, USSD, ...
+  reference: string;
+  note?: string;
+  ticker?: string;
+  time: string;
+  status: 'Completed' | 'Pending' | 'Failed';
+}
+
+/* ================= Bank accounts ================= */
+
+export interface BankAccount {
+  id: string;
+  bankName: string;
+  bankCode: string;
+  accountNumber: string;
+  accountName: string;
+  isDefault: boolean;
+}
+
+/* ================= Dividends ================= */
+
+export interface Dividend {
+  id: string;
+  ticker: string;
+  name: string;
+  declared: string; // declaration date
+  payDate: string;
+  shares: number;
+  perShare: number; // NGN
+  total: number;
+  status: 'Paid' | 'Processing';
+}
+
+/* ================= Price alerts ================= */
+
+export interface PriceAlert {
+  id: string;
+  stockId: string;
+  ticker: string;
+  name: string;
+  targetPrice: number;
+  direction: 'above' | 'below';
+  currentPrice: number;
+  active: boolean;
+  createdAt: string;
+}
+
+/* ================= Support ================= */
+
+export interface FaqItem {
+  id: string;
+  q: string;
+  a: string;
+  category: 'Account' | 'Trading' | 'Payments' | 'Security' | 'Sharia';
 }

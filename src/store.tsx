@@ -1,5 +1,6 @@
 import {
   createContext,
+  useEffect,
   useCallback,
   useContext,
   useMemo,
@@ -7,7 +8,9 @@ import {
   type ReactNode,
 } from 'react';
 
-import type { Holding, Order } from '@/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { Holding, Order, PriceAlert } from '@/types';
+import { getStock } from '@/services/marketData';
 import { HOLDINGS } from '@/services/portfolio';
 import { ORDERS } from '@/services/orders';
 import { PORTFOLIO } from '@/services/portfolio';
@@ -27,6 +30,14 @@ interface StoreValue {
   holdings: Holding[];
   orders: Order[];
   toast: Toast | null;
+  /** watchlist (persisted) */
+  watchlist: string[];
+  toggleWatch: (stockId: string) => void;
+  /** price alerts (persisted) */
+  alerts: PriceAlert[];
+  addAlert: (stockId: string, target: number, direction: 'above' | 'below') => ActionResult;
+  removeAlert: (id: string) => void;
+  toggleAlert: (id: string) => void;
   buy: (stockId: string, qty: number, price: number) => ActionResult;
   sell: (stockId: string, qty: number, price: number) => ActionResult;
   deposit: (amount: number) => ActionResult;
@@ -37,12 +48,40 @@ interface StoreValue {
 const StoreContext = createContext<StoreValue | null>(null);
 
 let toastId = 0;
+const KEY_WATCH = '@stocksx/watchlist';
+const KEY_ALERTS = '@stocksx/alerts';
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [cash, setCash] = useState(PORTFOLIO.cash);
   const [holdings, setHoldings] = useState<Holding[]>(HOLDINGS.map((h) => ({ ...h })));
   const [orders, setOrders] = useState<Order[]>([...ORDERS]);
   const [toast, setToast] = useState<Toast | null>(null);
+  const [watchlist, setWatchlist] = useState<string[]>([]);
+  const [alerts, setAlerts] = useState<PriceAlert[]>([]);
+
+  // restore + persist watchlist & alerts
+  useEffect(() => {
+    (async () => {
+      try {
+        const [w, a] = await Promise.all([
+          AsyncStorage.getItem(KEY_WATCH),
+          AsyncStorage.getItem(KEY_ALERTS),
+        ]);
+        if (w) setWatchlist(JSON.parse(w) as string[]);
+        if (a) setAlerts(JSON.parse(a) as PriceAlert[]);
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, []);
+  const persistWatch = (list: string[]) => {
+    setWatchlist(list);
+    AsyncStorage.setItem(KEY_WATCH, JSON.stringify(list)).catch(() => undefined);
+  };
+  const persistAlerts = (list: PriceAlert[]) => {
+    setAlerts(list);
+    AsyncStorage.setItem(KEY_ALERTS, JSON.stringify(list)).catch(() => undefined);
+  };
 
   const notify = useCallback((text: string, tone: Toast['tone'] = 'success') => {
     const t = { id: ++toastId, text, tone };
@@ -51,6 +90,49 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setToast((cur) => (cur && cur.id === t.id ? null : cur));
     }, 2800);
   }, []);
+
+  const toggleWatch = useCallback(
+    (stockId: string) => {
+      const has = watchlist.includes(stockId);
+      persistWatch(has ? watchlist.filter((x) => x !== stockId) : [...watchlist, stockId]);
+      notify(has ? 'Removed from watchlist' : 'Added to watchlist', 'info');
+    },
+    [watchlist, notify],
+  );
+
+  const addAlert = useCallback(
+    (stockId: string, target: number, direction: 'above' | 'below'): ActionResult => {
+      if (!(target > 0)) return { ok: false, msg: 'Enter a target price' };
+      const s = getStock(stockId);
+      if (!s) return { ok: false, msg: 'Stock not found' };
+      const alert: PriceAlert = {
+        id: `al-${Date.now()}`,
+        stockId,
+        ticker: s.ticker,
+        name: s.name,
+        targetPrice: target,
+        direction,
+        currentPrice: s.price,
+        active: true,
+        createdAt: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+      };
+      persistAlerts([alert, ...alerts]);
+      notify(`Alert set · ${s.ticker} ${direction === 'above' ? 'above' : 'below'} ₦${target.toLocaleString()}`);
+      return { ok: true, msg: 'Alert created' };
+    },
+    [alerts, notify],
+  );
+
+  const removeAlert = useCallback(
+    (id: string) => persistAlerts(alerts.filter((a) => a.id !== id)),
+    [alerts],
+  );
+
+  const toggleAlert = useCallback(
+    (id: string) =>
+      persistAlerts(alerts.map((a) => (a.id === id ? { ...a, active: !a.active } : a))),
+    [alerts],
+  );
 
   const buy = useCallback(
     (stockId: string, qty: number, price: number): ActionResult => {
@@ -143,8 +225,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const clearToast = useCallback(() => setToast(null), []);
 
   const value = useMemo<StoreValue>(
-    () => ({ cash, holdings, orders, toast, buy, sell, deposit, withdraw, clearToast }),
-    [cash, holdings, orders, toast, buy, sell, deposit, withdraw, clearToast],
+    () => ({
+      cash, holdings, orders, toast,
+      watchlist, toggleWatch,
+      alerts, addAlert, removeAlert, toggleAlert,
+      buy, sell, deposit, withdraw, clearToast,
+    }),
+    [
+      cash, holdings, orders, toast,
+      watchlist, toggleWatch,
+      alerts, addAlert, removeAlert, toggleAlert,
+      buy, sell, deposit, withdraw, clearToast,
+    ],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

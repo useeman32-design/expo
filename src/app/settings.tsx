@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Avatar, Card, ScreenHeader } from '@/components/primitives';
@@ -32,6 +33,7 @@ const SECTIONS: { title: string; rows: Row[] }[] = [
       { icon: 'person', color: '#0E8A57', label: 'Personal details', kind: 'link' },
       { icon: 'card', color: '#1F7AE0', label: 'Linked accounts', kind: 'link' },
       { icon: 'shield-checkmark', color: '#7A52C9', label: 'Security & KYC', kind: 'link' },
+      { icon: 'wallet', color: '#11A06B', label: 'Wallet & transactions', kind: 'link' },
     ],
   },
   {
@@ -50,6 +52,8 @@ const SECTIONS: { title: string; rows: Row[] }[] = [
     rows: [
       { icon: 'help-circle', color: '#1F7AE0', label: 'Help centre', kind: 'link' },
       { icon: 'chatbubble-ellipses', color: '#0E8A57', label: 'Contact us', kind: 'link' },
+      { icon: 'warning', color: '#DD4B3E', label: 'Risk disclosure', kind: 'link' },
+      { icon: 'receipt', color: '#F6A623', label: 'Fee schedule', kind: 'link' },
       { icon: 'star', color: '#E08A1F', label: 'Rate StocksX', kind: 'link' },
     ],
   },
@@ -73,12 +77,29 @@ export default function SettingsScreen() {
   });
 
   const { user, signOut, resetOnboarding } = useAuth();
+  const router = useRouter();
+
+  const LINK_ROUTES: Record<string, string> = {
+    'Personal details': '/personal-info',
+    'Linked accounts': '/bank-accounts',
+    'Security & KYC': '/security',
+    'Wallet & transactions': '/wallet',
+    'Help centre': '/support',
+    'Contact us': '/support',
+    'Risk disclosure': '/legal/risk',
+    'Fee schedule': '/legal/fees',
+    'Privacy policy': '/legal/privacy',
+    'Terms of service': '/legal/terms',
+  };
 
   const handleLink = (label: string) => {
     if (label === 'Replay onboarding') {
       // Guard sees onboarded=false and routes back to the intro slides
       resetOnboarding();
+      return;
     }
+    const route = LINK_ROUTES[label];
+    if (route) router.push(route as never);
   };
 
   const flip = (k: ToggleKey) => setToggles((t) => ({ ...t, [k]: !t[k] }));

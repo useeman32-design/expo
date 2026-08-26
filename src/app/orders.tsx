@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 
 import { Card, Chip, ScreenHeader, StockLogo } from '@/components/primitives';
 import { useStore } from '@/store';
@@ -10,15 +11,17 @@ import type { OrderStatus } from '@/types';
 import { C, F, R, S } from '@/theme';
 import { price } from '@/utils';
 
-const FILTERS = ['All', 'Open', 'Completed', 'Cancelled'] as const;
+const FILTERS = ['All', 'Open', 'Completed', 'Settled', 'Cancelled'] as const;
 
 const statusColor: Record<OrderStatus, string> = {
   Open: '#F6A623',
-  Completed: C.positive,
+  Completed: '#1F7AE0',
+  Settled: C.positive,
   Cancelled: C.negative,
 };
 
 export default function OrdersScreen() {
+  const router = useRouter();
   const store = useStore();
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>('All');
   const orders = useMemo(() => {
@@ -50,7 +53,15 @@ export default function OrdersScreen() {
                 const s = getStock(o.stockId);
                 const buy = o.side === 'Buy';
                 return (
-                  <View key={o.id} style={[styles.row, i < orders.length - 1 && styles.rowDiv]}>
+                  <Pressable
+                    key={o.id}
+                    onPress={() => router.push(`/orders/${o.id}` as never)}
+                    style={({ pressed }) => [
+                      styles.row,
+                      i < orders.length - 1 && styles.rowDiv,
+                      pressed && { opacity: 0.6 },
+                    ]}
+                  >
                     {s ? <StockLogo ticker={s.ticker} color={s.color} size={38} logo={getLogo(s.id)} /> : null}
                     <View style={{ flex: 1, gap: 3 }}>
                       <View style={styles.rowTop}>
@@ -75,7 +86,7 @@ export default function OrdersScreen() {
                         {o.status}
                       </Text>
                     </View>
-                  </View>
+                  </Pressable>
                 );
               })
             ) : (

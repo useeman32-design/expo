@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Button, Card, ChangePill, ScreenHeader, SectionTitle, Stat, StockLogo } from '@/components/primitives';
 import { TransferSheet } from '@/components/TransferSheet';
+import { Donut, DonutLegend } from '@/components/Donut';
 import { useStore } from '@/store';
 import { getLogo } from '@/services/logos';
 import { getHoldings, getPortfolio } from '@/services/portfolio';
@@ -85,30 +86,26 @@ export default function PortfolioScreen() {
 
         {/* allocation */}
         <View style={{ paddingHorizontal: S.xl, marginTop: S.xxl }}>
-          <SectionTitle title="Allocation" />
-          <Card pad={S.lg}>
-            <View style={styles.allocBar}>
-              {holdings.map((h) => (
-                <View
-                  key={h.stockId}
-                  style={{
-                    flex: h.portion,
-                    backgroundColor: h.color,
-                    marginHorizontal: 1,
-                    borderRadius: 4,
-                    height: 10,
-                  }}
-                />
-              ))}
-            </View>
-            <View style={styles.allocLegend}>
-              {holdings.slice(0, 4).map((h) => (
-                <View key={h.stockId} style={styles.legendItem}>
-                  <View style={[styles.legendDot, { backgroundColor: h.color }]} />
-                  <Text style={styles.legendText}>{h.ticker}</Text>
-                </View>
-              ))}
-            </View>
+          <SectionTitle title="Allocation" action="See all" onAction={() => router.push('/watchlist' as never)} />
+          <Card pad={S.xl} style={{ alignItems: 'center' }}>
+            <Donut
+              slices={holdings.map((h) => ({
+                id: h.stockId,
+                label: h.ticker,
+                value: h.value,
+                color: h.color,
+              }))}
+              centerLabel="Invested"
+              centerValue={money(holdings.reduce((a, h) => a + h.value, 0))}
+            />
+            <DonutLegend
+              slices={holdings.map((h) => ({
+                id: h.stockId,
+                label: h.ticker,
+                value: h.value,
+                color: h.color,
+              }))}
+            />
           </Card>
         </View>
 
