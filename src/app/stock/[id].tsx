@@ -68,9 +68,19 @@ export default function StockDetailScreen() {
               </View>
             </View>
 
-            <Text style={styles.price}>{price(stock.price, cur)}</Text>
+            <View style={styles.priceRow}>
+              <Text style={styles.price}>{price(stock.price, cur)}</Text>
+              <Pressable
+                onPress={() => router.push(`/rules?stock=${stock.id}` as never)}
+                style={({ pressed }) => [styles.posBtn, pressed && { opacity: 0.75 }]}
+                accessibilityLabel="Set up a position for this stock"
+              >
+                <Ionicons name="flash" size={13} color={C.white} />
+                <Text style={styles.posBtnText}>POSITION</Text>
+              </Pressable>
+            </View>
             <View style={styles.changeRow}>
-              <View style={styles.whitePill}>
+              <View style={[styles.whitePill, !up && styles.whitePillDown]}>
                 <Ionicons name={up ? 'caret-up' : 'caret-down'} size={11} color={C.white} />
                 <Text style={styles.whitePillText}>{pct(stock.changePct)}</Text>
               </View>
@@ -168,18 +178,9 @@ export default function StockDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* BUY / AUTO / SELL bar */}
+      {/* BUY / SELL bar */}
       <View style={styles.actionBar}>
         <BuySellButton label="BUY" tone="green" onPress={() => setTrade({ open: true, side: 'Buy' })} />
-        <View style={{ width: 10 }} />
-        <Pressable
-          onPress={() => router.push('/rules' as never)}
-          style={({ pressed }) => [styles.autoBtn, pressed && { opacity: 0.75 }]}
-          accessibilityLabel="Create an auto-trade rule for this stock"
-        >
-          <Ionicons name="flash" size={15} color={C.green} />
-          <Text style={styles.autoText}>AUTO</Text>
-        </Pressable>
         <View style={{ width: 10 }} />
         <BuySellButton label="SELL" tone="red" onPress={() => setTrade({ open: true, side: 'Sell' })} />
       </View>
@@ -218,8 +219,23 @@ const styles = StyleSheet.create({
   marketTag: { backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 9, paddingVertical: 4, borderRadius: R.sm },
   marketTagText: { color: C.white, fontFamily: F.sans, fontSize: 11, fontWeight: '800' },
   price: { color: C.white, fontFamily: F.display, fontSize: 40, fontWeight: '800', letterSpacing: -1.3, marginTop: S.md },
+  priceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: S.md },
+  posBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: R.pill,
+  },
+  posBtnText: { color: C.white, fontFamily: F.sans, fontSize: 12.5, fontWeight: '800', letterSpacing: 0.6 },
   changeRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },
   whitePill: { flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: 'rgba(255,255,255,0.22)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: R.sm },
+  whitePillDown: { backgroundColor: C.negative },
   whitePillText: { color: C.white, fontFamily: F.sans, fontSize: 12, fontWeight: '700' },
   changeText: { color: 'rgba(255,255,255,0.92)', fontFamily: F.sans, fontSize: 13, fontWeight: '600' },
   content: { paddingHorizontal: S.xl, marginTop: S.lg },
@@ -258,17 +274,4 @@ const styles = StyleSheet.create({
   actionBar: { position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', paddingHorizontal: S.xl, paddingTop: S.md, paddingBottom: 24, backgroundColor: 'rgba(244,246,245,0.96)' },
   bsBtn: { flex: 1, paddingVertical: 16, borderRadius: R.md, alignItems: 'center' },
   bsText: { color: C.white, fontFamily: F.sans, fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
-  autoBtn: {
-    flex: 0.62,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
-    backgroundColor: C.greenTint,
-    borderWidth: 1.5,
-    borderColor: C.green,
-    borderRadius: R.md,
-    paddingVertical: 15,
-  },
-  autoText: { color: C.green, fontFamily: F.sans, fontSize: 14, fontWeight: '800', letterSpacing: 0.5 },
 });

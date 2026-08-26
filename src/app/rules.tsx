@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -11,24 +11,30 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Card, ScreenHeader, StockLogo } from '@/components/primitives';
+import { StockPicker } from '@/components/StockPicker';
 import { useStore } from '@/store';
-import { getStocks } from '@/services/marketData';
+import { getStock, getStocks } from '@/services/marketData';
+import { getLogo } from '@/services/logos';
 import { price as fmtPrice, money } from '@/utils';
 import { C, F, R, S } from '@/theme';
 
 /**
- * Auto-Trades — user-defined conditional orders.
+ * Positions — user-defined conditional orders.
  * "When MTNN rises above ₦300 → Buy 10 shares automatically."
  * Production: a backend price watcher evaluates rules on every tick and
  * submits the order through the BrokerAdapter (mystocks.africa) when a
  * trigger crosses. Buy-below triggers map naturally to resting limit orders
  * on NGX; sell triggers act as stop-loss / take-profit.
+ *
+ * Navigating here with ?stock=<id> (from a stock screen's POSITION button)
+ * scopes the sheet to that single stock.
  */
 export default function RulesScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ stock?: string }>();
   const { rules, addRule, removeRule, toggleRule, cash } = useStore();
   const [open, setOpen] = useState(false);
   const [stockId, setStockId] = useState('mtnn');
@@ -39,7 +45,18 @@ export default function RulesScreen() {
   const [err, setErr] = useState<string | null>(null);
 
   const stocks = useMemo(() => getStocks(), []);
-  const selected = stocks.find((s) => s.id === stockId);
+
+  // arriving from a stock screen: preselect that stock and open the sheet
+  useEffect(() => {
+    const wanted = params.stock ? getStock(String(params.stock)) : undefined;
+    if (wanted) {
+      setStockId(wanted.id);
+      setOpen(true);
+    }
+  }, [params.stock]);
+
+  const selected = stocks.find((s) => s.id === stockId) ?? getStock(stockId);
+  const scoped = !!params.stock && !!getStock(String(params.stock));
   const p = parseFloat(price) || 0;
   const q = parseInt(qty, 10) || 0;
   const est = p * q;
@@ -67,7 +84,7 @@ export default function RulesScreen() {
     <View style={styles.screen}>
       <StatusBar style="dark" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
-        <ScreenHeader title="Auto-Trades" subtitle="Set it, forget it, stay disciplined" />
+        <ScreenHeader title="Positions" subtitle="Set it, forget it, stay disciplined" />
 
         {/* how it works */}
         <View style={{ paddingHorizontal: S.xl, marginTop: S.sm }}>
@@ -106,7 +123,7 @@ export default function RulesScreen() {
                   onPress={() => router.push(`/stock/${r.stockId}` as never)}
                   style={styles.ruleLeft}
                 >
-                  <StockLogo ticker={r.ticker} color={C.green} size={40} />
+                  <StockLogo ticker={r.ticker} color={C.green} size={40} logo={getLogo(r.stockId)} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.ruleTitle}>
                       <Text style={[styles.sideTag, { color: r.side === 'Buy' ? C.green : C.negative }]}>
@@ -142,7 +159,7 @@ export default function RulesScreen() {
             style={({ pressed }) => [styles.addCard, pressed && { opacity: 0.8 }]}
           >
             <Ionicons name="add-circle-outline" size={22} color={C.green} />
-            <Text style={styles.addText}>New auto-trade</Text>
+            <Text style={styles.addText}>New position</Text>
           </Pressable>
         </View>
 
@@ -169,24 +186,43 @@ export default function RulesScreen() {
           <Pressable style={{ flex: 1 }} onPress={() => setOpen(false)} />
           <View style={styles.sheet}>
             <View style={styles.sheetBar} />
-            <Text style={styles.sheetTitle}>New auto-trade</Text>
+            <Text style={styles.sheetTitle}>New position</Text>
 
-            <Text style={styles.label}>Stock</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-              {stocks.slice(0, 12).map((s) => (
-                <Pressable
-                  key={s.id}
-                  onPress={() => setStockId(s.id)}
-                  style={[styles.stockChip, stockId === s.id && styles.stockChipActive]}
-                >
-                  <Text style={[styles.stockChipText, stockId === s.id && { color: C.white }]}>
-                    {s.ticker}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
+            <ScrollView
+              bounces={false}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingBottom: S.lg }}
+            >
+              {scoped && selected ? (
+                <View style={styles.scopedRow}>
+                  <StockLogo
+                    ticker={selected.ticker}
+                    color={selected.color}
+                    size={42}
+                    logo={getLogo(selected.id)}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.scopedTicker}>{selected.ticker}</Text>
+                    <Text style={styles.scopedName} numberOfLines={1}>
+                      {selected.name}
+                    </Text>
+                  </View>
+                  <Text style={styles.scopedPrice}>{fmtPrice(selected.price)}</Text>
+                </View>
+              ) : (
+                <>
+                  <Text style={styles.label}>Stock</Text>
+                  <StockPicker
+                    stocks={stocks}
+                    selectedId={stockId}
+                    onSelect={setStockId}
+                    previewCount={16}
+                  />
+                </>
+              )}
 
-            <Text style={styles.label}>When the price</Text>
+              <Text style={styles.label}>When the price</Text>
             <View style={styles.trigRow}>
               {(['above', 'below'] as const).map((d) => (
                 <Pressable
@@ -258,10 +294,11 @@ export default function RulesScreen() {
               </View>
             ) : null}
             {err ? <Text style={styles.err}>{err}</Text> : null}
+            </ScrollView>
 
             <Pressable onPress={create} style={({ pressed }) => [styles.cta, pressed && { opacity: 0.9 }]}>
               <Ionicons name="flash" size={16} color={C.white} />
-              <Text style={styles.ctaText}>Arm auto-trade</Text>
+              <Text style={styles.ctaText}>Activate position</Text>
             </Pressable>
           </View>
         </View>
@@ -343,6 +380,20 @@ const styles = StyleSheet.create({
     marginBottom: S.lg,
   },
   sheetTitle: { color: C.ink, fontFamily: F.display, fontSize: 18, fontWeight: '700' },
+  scopedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11,
+    backgroundColor: C.greenTint,
+    borderWidth: 1,
+    borderColor: C.green,
+    borderRadius: R.md,
+    padding: S.md,
+    marginTop: S.sm,
+  },
+  scopedTicker: { color: C.ink, fontFamily: F.display, fontSize: 15, fontWeight: '800' },
+  scopedName: { color: C.muted, fontFamily: F.sans, fontSize: 12, marginTop: 1 },
+  scopedPrice: { color: C.greenDark, fontFamily: F.mono, fontSize: 13.5, fontWeight: '800' },
   label: {
     color: C.ink2,
     fontFamily: F.sans,

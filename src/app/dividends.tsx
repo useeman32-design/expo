@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Card, ScreenHeader, StockLogo } from '@/components/primitives';
 import { DIVIDENDS } from '@/services/support';
 import { getStock } from '@/services/marketData';
+import { getLogo } from '@/services/logos';
 import { money } from '@/utils';
 import { C, F, R, S } from '@/theme';
 
@@ -39,6 +40,7 @@ export default function DividendsScreen() {
                     ticker={d.ticker}
                     color={stock?.color ?? C.green}
                     size={38}
+                    logo={getLogo(d.ticker.toLowerCase())}
                   />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.ticker}>{d.ticker}</Text>

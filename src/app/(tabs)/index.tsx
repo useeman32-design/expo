@@ -45,6 +45,8 @@ export default function HomeScreen() {
   const router = useRouter();
   const store = useStore();
   const portfolio = useMemo(() => getPortfolio(), []);
+  const upToday = portfolio.todayPl >= 0;
+  const upTodayPct = portfolio.todayPct >= 0;
   const [transfer, setTransfer] = useState<{ open: boolean; mode: 'deposit' | 'withdraw' }>({
     open: false,
     mode: 'deposit',
@@ -108,12 +110,12 @@ export default function HomeScreen() {
               <Text style={styles.heroLabel}>Total Portfolio Value</Text>
               <Text style={styles.heroValue}>{money(portfolio.totalValue)}</Text>
               <View style={styles.heroChangeRow}>
-                <View style={styles.whitePill}>
-                  <Ionicons name="caret-up" size={11} color={C.white} />
+                <View style={[styles.whitePill, !upTodayPct && styles.whitePillDown]}>
+                  <Ionicons name={upTodayPct ? 'caret-up' : 'caret-down'} size={11} color={C.white} />
                   <Text style={styles.whitePillText}>{pct(portfolio.todayPct)}</Text>
                 </View>
                 <Text style={styles.heroChangeText}>
-                  +{money(portfolio.todayPl)} Today
+                  {money(portfolio.todayPl)} Today
                 </Text>
               </View>
             </View>
@@ -147,10 +149,12 @@ export default function HomeScreen() {
             <View style={styles.bridgeDivider} />
             <View style={styles.bridgeCol}>
               <Text style={styles.bridgeLabel}>Today’s P/L</Text>
-              <Text style={[styles.bridgeValue, { color: C.positive }]}>
-                +{money(portfolio.todayPl)}
+              <Text style={[styles.bridgeValue, { color: upToday ? C.positive : C.negative }]}>
+                {money(portfolio.todayPl)}
               </Text>
-              <Text style={styles.bridgeSub}>{pct(portfolio.todayPct)}</Text>
+              <Text style={[styles.bridgeSub, { color: upTodayPct ? C.positive : C.negative }]}>
+                {pct(portfolio.todayPct)}
+              </Text>
             </View>
           </View>
         </Card>
@@ -315,6 +319,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: R.sm,
   },
+  whitePillDown: { backgroundColor: C.negative },
   whitePillText: {
     color: C.white,
     fontFamily: F.sans,

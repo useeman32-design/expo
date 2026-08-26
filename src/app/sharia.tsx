@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Card, ScreenHeader, StockLogo } from '@/components/primitives';
 import { getStocks } from '@/services/marketData';
+import { getLogo } from '@/services/logos';
 import { C, F, R, S } from '@/theme';
 
 /**
@@ -100,7 +101,7 @@ export default function ShariaScreen() {
               return (
                 <Card key={s.id} pad={S.md} radius={R.md}>
                   <View style={styles.row}>
-                    <StockLogo ticker={s.ticker} color={s.color} size={36} />
+                    <StockLogo ticker={s.ticker} color={s.color} size={36} logo={getLogo(s.id)} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.ticker}>{s.ticker}</Text>
                       <Text style={styles.name} numberOfLines={1}>

@@ -51,18 +51,27 @@ export default function PortfolioScreen() {
             <View style={styles.sumChange}>
               <ChangePill value={p.todayPct} />
               <Text style={styles.sumChangeText}>
-                +{money(p.todayPl)} today
+                {money(p.todayPl)} today
               </Text>
             </View>
 
             <View style={styles.divider} />
 
             <View style={styles.grid}>
-              <Stat label="Total Return" value={`+${money(p.totalReturn)}`} valueColor={C.positive} />
+              <Stat
+                label="Total Return"
+                value={money(p.totalReturn)}
+                valueColor={p.totalReturn >= 0 ? C.positive : C.negative}
+              />
               <View style={styles.gridLine} />
               <View>
                 <Text style={styles.miniLabel}>Return %</Text>
-                <Text style={[styles.miniValue, { color: C.positive }]}>
+                <Text
+                  style={[
+                    styles.miniValue,
+                    { color: p.totalReturnPct >= 0 ? C.positive : C.negative },
+                  ]}
+                >
                   {pct(p.totalReturnPct)}
                 </Text>
               </View>

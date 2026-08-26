@@ -9,6 +9,7 @@ import { Image } from 'expo-image';
 
 import { useAuth } from '@/auth';
 import { C, F, R, S, SH } from '@/theme';
+import logoApp from '@/assets/images/logo-app.png';
 
 import img1 from '@/assets/onboarding/onboarding1.png';
 import img2 from '@/assets/onboarding/onboarding2.png';
@@ -69,9 +70,7 @@ export default function OnboardingScreen() {
       {/* top bar */}
       <View style={[styles.topBar, { marginTop: insets.top + 6 }]}>
         <View style={styles.wordmark}>
-          <View style={styles.logoDot}>
-            <Text style={styles.logoLetter}>S</Text>
-          </View>
+          <Image source={logoApp} style={styles.logoImg} contentFit="contain" />
           <Text style={styles.wordmarkText}>StocksX</Text>
         </View>
         <Pressable onPress={finish} style={styles.skipBtn}>
@@ -150,15 +149,7 @@ const styles = StyleSheet.create({
     paddingBottom: S.sm,
   },
   wordmark: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  logoDot: {
-    width: 30,
-    height: 30,
-    borderRadius: 9,
-    backgroundColor: C.green,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoLetter: { color: C.white, fontFamily: F.display, fontSize: 17, fontWeight: '900' },
+  logoImg: { width: 32, height: 32, borderRadius: 10 },
   wordmarkText: {
     color: C.ink,
     fontFamily: F.display,

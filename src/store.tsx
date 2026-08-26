@@ -151,7 +151,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       };
       persistRules([rule, ...rules]);
       notify(
-        `Auto-trade armed · ${r.side} ${r.qty} ${r.ticker} when ${r.trigger === 'above' ? 'above' : 'below'} ₦${r.price.toLocaleString()}`,
+        `Position armed · ${r.side} ${r.qty} ${r.ticker} when ${r.trigger === 'above' ? 'above' : 'below'} ₦${r.price.toLocaleString()}`,
       );
       return { ok: true, msg: 'Rule created' };
     },

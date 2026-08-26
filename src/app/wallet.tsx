@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import { Card, ScreenHeader } from '@/components/primitives';
+import { KIND_META, ReceiptModal } from '@/components/ReceiptModal';
 import { useStore } from '@/store';
 import { TRANSACTIONS } from '@/services/wallet';
 import { money } from '@/utils';
@@ -21,20 +22,11 @@ const FILTERS: { id: 'all' | TxKind; label: string }[] = [
   { id: 'fee', label: 'Fees' },
 ];
 
-const KIND_META: Record<TxKind, { icon: string; color: string; label: string }> = {
-  deposit: { icon: 'arrow-down-outline', color: '#0E8A57', label: 'Deposit' },
-  withdrawal: { icon: 'arrow-up-outline', color: '#1F7AE0', label: 'Withdrawal' },
-  buy: { icon: 'trending-up-outline', color: '#11A06B', label: 'Buy order' },
-  sell: { icon: 'trending-down-outline', color: '#F6A623', label: 'Sell order' },
-  dividend: { icon: 'cash-outline', color: '#7C5CFF', label: 'Dividend' },
-  fee: { icon: 'receipt-outline', color: '#6C7771', label: 'Fees' },
-  refund: { icon: 'refresh-outline', color: '#DD4B3E', label: 'Refund' },
-};
-
 export default function WalletScreen() {
   const router = useRouter();
   const { cash } = useStore();
   const [filter, setFilter] = useState<'all' | TxKind>('all');
+  const [receipt, setReceipt] = useState<WalletTransaction | null>(null);
 
   const rows = useMemo<WalletTransaction[]>(() => {
     const merged = [
@@ -120,41 +112,52 @@ export default function WalletScreen() {
               const meta = KIND_META[t.kind];
               const credit = t.amount >= 0;
               return (
-                <Card key={t.id} pad={S.md} radius={R.md}>
-                  <View style={styles.txRow}>
-                    <View style={[styles.txIcon, { backgroundColor: `${meta.color}16` }]}>
-                      <Ionicons name={meta.icon as never} size={17} color={meta.color} />
+                <Pressable
+                  key={t.id}
+                  onPress={() => setReceipt(t)}
+                  style={({ pressed }) => [{}, pressed && { opacity: 0.7, transform: [{ scale: 0.995 }] }]}
+                  accessibilityLabel={`View receipt for ${t.reference}`}
+                >
+                  <Card pad={S.md} radius={R.md}>
+                    <View style={styles.txRow}>
+                      <View style={[styles.txIcon, { backgroundColor: `${meta.color}16` }]}>
+                        <Ionicons name={meta.icon as never} size={17} color={meta.color} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.txTitle}>
+                          {meta.label}
+                          {t.ticker ? ` · ${t.ticker}` : ''}
+                        </Text>
+                        <Text style={styles.txSub} numberOfLines={1}>
+                          {t.method} · {t.time}
+                        </Text>
+                        <View style={styles.receiptHint}>
+                          <Ionicons name="receipt-outline" size={10} color={C.green} />
+                          <Text style={styles.receiptHintText}>View receipt</Text>
+                        </View>
+                      </View>
+                      <View style={{ alignItems: 'flex-end' }}>
+                        <Text
+                          style={[
+                            styles.txAmount,
+                            { color: credit ? C.positive : C.ink },
+                          ]}
+                        >
+                          {credit ? '+' : '−'}
+                          {money(Math.abs(t.amount))}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.txStatus,
+                            { color: t.status === 'Completed' ? C.green : t.status === 'Pending' ? '#F6A623' : C.negative },
+                          ]}
+                        >
+                          {t.status}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.txTitle}>
-                        {meta.label}
-                        {t.ticker ? ` · ${t.ticker}` : ''}
-                      </Text>
-                      <Text style={styles.txSub} numberOfLines={1}>
-                        {t.method} · {t.time}
-                      </Text>
-                    </View>
-                    <View style={{ alignItems: 'flex-end' }}>
-                      <Text
-                        style={[
-                          styles.txAmount,
-                          { color: credit ? C.positive : C.ink },
-                        ]}
-                      >
-                        {credit ? '+' : '−'}
-                        {money(Math.abs(t.amount))}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.txStatus,
-                          { color: t.status === 'Completed' ? C.green : t.status === 'Pending' ? '#F6A623' : C.negative },
-                        ]}
-                      >
-                        {t.status}
-                      </Text>
-                    </View>
-                  </View>
-                </Card>
+                  </Card>
+                </Pressable>
               );
             })
           )}
@@ -162,11 +165,13 @@ export default function WalletScreen() {
 
         <View style={{ paddingHorizontal: S.xl, marginTop: S.lg }}>
           <Text style={styles.note}>
-            Full statements (PDF) and per-transaction receipts will be downloadable once the live
-            backend is connected.
+            Tap any transaction to view and share its receipt. Full PDF statements arrive with the
+            live backend.
           </Text>
         </View>
       </ScrollView>
+
+      <ReceiptModal tx={receipt} onClose={() => setReceipt(null)} />
     </View>
   );
 }
@@ -232,6 +237,8 @@ const styles = StyleSheet.create({
   txSub: { color: C.muted, fontFamily: F.sans, fontSize: 11.5, marginTop: 2 },
   txAmount: { fontFamily: F.mono, fontSize: 14.5, fontWeight: '700' },
   txStatus: { fontFamily: F.sans, fontSize: 10.5, fontWeight: '700', marginTop: 2 },
+  receiptHint: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3 },
+  receiptHintText: { color: C.green, fontFamily: F.sans, fontSize: 10, fontWeight: '700' },
   empty: { color: C.muted, fontFamily: F.sans, fontSize: 13.5, textAlign: 'center' },
   note: {
     color: C.faint,

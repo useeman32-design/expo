@@ -4,11 +4,13 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { useAuth } from '@/auth';
 import { LabeledInput, SocialButton } from '@/components/AuthFields';
 import { C, F, R, S } from '@/theme';
+import logoApp from '@/assets/images/logo-app.png';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -53,9 +55,7 @@ export default function RegisterScreen() {
         >
           {/* brand */}
           <View style={styles.brand}>
-            <View style={styles.logoDot}>
-              <Text style={styles.logoLetter}>S</Text>
-            </View>
+            <Image source={logoApp} style={styles.logoImg} contentFit="contain" />
             <Text style={styles.brandText}>StocksX</Text>
           </View>
 
@@ -130,15 +130,7 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.white },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  logoDot: {
-    width: 30,
-    height: 30,
-    borderRadius: 9,
-    backgroundColor: C.green,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoLetter: { color: C.white, fontFamily: F.sans, fontSize: 17, fontWeight: '900' },
+  logoImg: { width: 32, height: 32, borderRadius: 10 },
   brandText: { color: C.ink, fontFamily: F.sans, fontSize: 19, fontWeight: '900', letterSpacing: -0.3 },
   hello: {
     color: C.ink,

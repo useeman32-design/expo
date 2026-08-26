@@ -14,8 +14,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import { Card, ScreenHeader, StockLogo } from '@/components/primitives';
+import { StockPicker } from '@/components/StockPicker';
 import { useStore } from '@/store';
 import { getStocks } from '@/services/marketData';
+import { getLogo } from '@/services/logos';
 import { price as fmtPrice } from '@/utils';
 import { C, F, R, S } from '@/theme';
 
@@ -67,7 +69,7 @@ export default function AlertsScreen() {
                     onPress={() => router.push(`/stock/${a.stockId}` as never)}
                     style={styles.left}
                   >
-                    <StockLogo ticker={a.ticker} color={C.green} size={38} />
+                    <StockLogo ticker={a.ticker} color={C.green} size={38} logo={getLogo(a.stockId)} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.ticker}>{a.ticker}</Text>
                       <Text style={styles.cond}>
@@ -120,20 +122,14 @@ export default function AlertsScreen() {
             <View style={styles.sheetBar} />
             <Text style={styles.sheetTitle}>New price alert</Text>
 
+            <ScrollView
+              bounces={false}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingBottom: S.lg }}
+            >
             <Text style={styles.label}>Stock</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-              {stocks.slice(0, 12).map((s) => (
-                <Pressable
-                  key={s.id}
-                  onPress={() => setStockId(s.id)}
-                  style={[styles.stockChip, stockId === s.id && styles.stockChipActive]}
-                >
-                  <Text style={[styles.stockChipText, stockId === s.id && { color: C.white }]}>
-                    {s.ticker}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
+            <StockPicker stocks={stocks} selectedId={stockId} onSelect={setStockId} previewCount={16} />
 
             <Text style={styles.label}>When the price</Text>
             <View style={styles.dirRow}>
@@ -170,6 +166,7 @@ export default function AlertsScreen() {
               </Text>
             ) : null}
             {err ? <Text style={styles.err}>{err}</Text> : null}
+            </ScrollView>
 
             <Pressable onPress={create} style={({ pressed }) => [styles.cta, pressed && { opacity: 0.9 }]}>
               <Text style={styles.ctaText}>Create alert</Text>

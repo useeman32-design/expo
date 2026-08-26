@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, Modal, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Animated, Easing, Modal, Pressable, ScrollView, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Svg, Circle, Path } from 'react-native-svg';
@@ -11,19 +11,22 @@ export function Sheet({
   onClose,
   title,
   children,
+  footer,
   overlay,
 }: {
   visible: boolean;
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
+  /** Sticky content pinned below the scroll area (e.g. the primary CTA). */
+  footer?: React.ReactNode;
   overlay?: React.ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} />
-      <View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
+      <View style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}>
         <View style={styles.handle} />
         {title ? (
           <View style={styles.head}>
@@ -33,7 +36,15 @@ export function Sheet({
             </Pressable>
           </View>
         ) : null}
-        {children}
+        <ScrollView
+          bounces={false}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.body}
+        >
+          {children}
+        </ScrollView>
+        {footer ? <View style={styles.footer}>{footer}</View> : null}
       </View>
       {overlay}
     </Modal>
@@ -228,8 +239,16 @@ const styles = StyleSheet.create({
     borderTopRightRadius: R.xxl,
     paddingHorizontal: S.xl,
     paddingTop: 10,
-    maxHeight: '92%',
+    maxHeight: '88%',
     ...SH.float,
+  },
+  body: { paddingBottom: 4 },
+  footer: {
+    paddingTop: S.sm,
+    marginTop: S.xs,
+    borderTopWidth: 1,
+    borderTopColor: C.hairlineSoft,
+    backgroundColor: C.white,
   },
   handle: {
     width: 42,

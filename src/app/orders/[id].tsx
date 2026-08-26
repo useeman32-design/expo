@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Card, ScreenHeader, StockLogo } from '@/components/primitives';
 import { getStock } from '@/services/marketData';
+import { getLogo } from '@/services/logos';
 import { ORDERS } from '@/services/orders';
 import { money, price as fmtPrice } from '@/utils';
 import { C, F, R, S } from '@/theme';
@@ -70,7 +71,7 @@ export default function OrderDetailScreen() {
         <View style={{ paddingHorizontal: S.xl, marginTop: S.sm }}>
           <Card pad={S.xl} radius={R.xl}>
             <View style={styles.stockRow}>
-              <StockLogo ticker={stock.ticker} color={stock.color} size={46} />
+              <StockLogo ticker={stock.ticker} color={stock.color} size={46} logo={getLogo(stock.id)} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.ticker}>{stock.ticker}</Text>
                 <Text style={styles.name}>{stock.name}</Text>

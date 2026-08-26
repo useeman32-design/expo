@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { Card, ScreenHeader, ChangePill, StockLogo } from '@/components/primitives';
 import { useStore } from '@/store';
 import { getStock } from '@/services/marketData';
+import { getLogo } from '@/services/logos';
 import { price as fmtPrice } from '@/utils';
 import { C, F, R, S } from '@/theme';
 
@@ -45,7 +46,7 @@ export default function WatchlistScreen() {
                     style={styles.left}
                     onPress={() => router.push(`/stock/${s!.id}` as never)}
                   >
-                    <StockLogo ticker={s!.ticker} color={s!.color} size={40} />
+                    <StockLogo ticker={s!.ticker} color={s!.color} size={40} logo={getLogo(s!.id)} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.ticker}>{s!.ticker}</Text>
                       <Text style={styles.name} numberOfLines={1}>
