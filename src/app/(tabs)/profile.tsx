@@ -9,7 +9,7 @@ import { Avatar, Card, ScreenHeader, SectionTitle } from '@/components/primitive
 import { useAuth } from '@/auth';
 import { useKyc } from '@/kyc';
 import { getPortfolio } from '@/services/portfolio';
-import { C, F, R, S, SH } from '@/theme';
+import { C, F, R, S, SH, registerStyles, STATUSBAR } from '@/theme';
 import { money } from '@/utils';
 
 const MENU = [
@@ -44,7 +44,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 110 }}>
         <ScreenHeader title="Profile" subtitle="Account & settings" />
 
@@ -176,7 +176,7 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   userRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   avatar: {
@@ -320,3 +320,5 @@ const styles = StyleSheet.create({
     marginTop: S.xl,
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

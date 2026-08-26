@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Svg, Circle, Path } from 'react-native-svg';
 
-import { C, F, R, S, SH } from '@/theme';
+import { C, F, R, S, SH, registerStyles } from '@/theme';
 
 export function Sheet({
   visible,
@@ -193,7 +193,7 @@ export function SuccessOverlay({
   );
 }
 
-const succStyles = StyleSheet.create({
+const makeSuccStyles = () => StyleSheet.create({
   shade: {
     position: 'absolute',
     top: 0,
@@ -223,8 +223,10 @@ const succStyles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+let succStyles = makeSuccStyles();
+registerStyles(() => { succStyles = makeSuccStyles(); });
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(10,30,22,0.45)',
@@ -234,7 +236,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     borderTopLeftRadius: R.xxl,
     borderTopRightRadius: R.xxl,
     paddingHorizontal: S.xl,
@@ -248,7 +250,7 @@ const styles = StyleSheet.create({
     marginTop: S.xs,
     borderTopWidth: 1,
     borderTopColor: C.hairlineSoft,
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
   },
   handle: {
     width: 42,
@@ -298,3 +300,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

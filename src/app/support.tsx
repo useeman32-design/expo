@@ -5,16 +5,16 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Card, ScreenHeader } from '@/components/primitives';
 import { FAQS } from '@/services/support';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 
 export default function SupportScreen() {
   const [openId, setOpenId] = useState<string | null>(FAQS[0]?.id ?? null);
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
-        <ScreenHeader title="Help & Support" subtitle="Answers and ways to reach us" />
+        <ScreenHeader title="Help & Support" subtitle="Answers and ways to reach us" showBack />
 
         {/* contact actions */}
         <View style={{ paddingHorizontal: S.xl, marginTop: S.sm, gap: S.md }}>
@@ -124,12 +124,12 @@ function ContactCard({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   contactRow: { flexDirection: 'row', gap: S.md },
   contactCard: {
     flex: 1,
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     borderRadius: R.lg,
     padding: S.lg,
     alignItems: 'flex-start',
@@ -174,3 +174,5 @@ const styles = StyleSheet.create({
   faqTagText: { color: C.green, fontFamily: F.sans, fontSize: 10.5, fontWeight: '700' },
   note: { color: C.faint, fontFamily: F.sans, fontSize: 12, lineHeight: 18, textAlign: 'center' },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

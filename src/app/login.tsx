@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { useAuth } from '@/auth';
 import { LabeledInput, SocialButton } from '@/components/AuthFields';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 import logoApp from '@/assets/images/logo-app.png';
 
 export default function LoginScreen() {
@@ -46,7 +46,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
@@ -127,8 +127,8 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: C.white },
+const makeStyles = () => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.surface },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 9 },
   logoImg: { width: 32, height: 32, borderRadius: 10 },
   brandText: { color: C.ink, fontFamily: F.sans, fontSize: 19, fontWeight: '900', letterSpacing: -0.3 },
@@ -200,3 +200,5 @@ const styles = StyleSheet.create({
   footerText: { color: C.muted, fontFamily: F.sans, fontSize: 14, fontWeight: '600' },
   footerLink: { color: C.greenDark, fontFamily: F.sans, fontSize: 14, fontWeight: '800' },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

@@ -3,7 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import type { Stock } from '@/types';
 import { generateSeries, type Timeframe } from '@/services/chartData';
-import { C, F } from '@/theme';
+import { C, F, registerStyles } from '@/theme';
 
 /**
  * Web implementation of the price chart: renders TradingView Lightweight
@@ -54,23 +54,23 @@ export function TradingViewChart({
       chart = LC.createChart(hostRef.current, {
         autoSize: true,
         layout: {
-          background: { type: 'solid', color: '#ffffff' },
-          textColor: '#6C7771',
+          background: { type: 'solid', color: C.card },
+          textColor: C.muted,
           fontSize: 11,
           fontFamily: 'Inter, system-ui, sans-serif',
         },
         grid: {
-          vertLines: { color: 'rgba(15,23,42,0.05)' },
-          horzLines: { color: 'rgba(15,23,42,0.05)' },
+          vertLines: { color: 'rgba(128,140,132,0.10)' },
+          horzLines: { color: 'rgba(128,140,132,0.10)' },
         },
         crosshair: {
           mode: LC.CrosshairMode.Normal,
           vertLine: { labelBackgroundColor: '#0E8A57' },
           horzLine: { labelBackgroundColor: '#0E8A57' },
         },
-        rightPriceScale: { borderColor: 'rgba(15,23,42,0.12)' },
+        rightPriceScale: { borderColor: 'rgba(128,140,132,0.18)' },
         timeScale: {
-          borderColor: 'rgba(15,23,42,0.12)',
+          borderColor: 'rgba(128,140,132,0.18)',
           timeVisible: true,
           secondsVisible: false,
           rightOffset: 2,
@@ -142,11 +142,11 @@ export function TradingViewChart({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   wrap: {
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
   },
   host: { flex: 1 },
   loading: {
@@ -166,3 +166,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

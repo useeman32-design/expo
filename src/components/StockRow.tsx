@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { Stock } from '@/types';
 import { price } from '@/utils';
 import { getLogo } from '@/services/logos';
-import { C, F, S } from '@/theme';
+import { C, F, S, registerStyles } from '@/theme';
 import { ChangePill, StockLogo } from '@/components/primitives';
 import { Chart } from '@/components/Chart';
 import { useStore } from '@/store';
@@ -74,7 +74,7 @@ export function StockRow({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -108,3 +108,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

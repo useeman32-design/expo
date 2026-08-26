@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
-import { C, F } from '@/theme';
+import { C, F, registerStyles } from '@/theme';
 import { compact } from '@/utils';
 
 export interface DonutSlice {
@@ -105,7 +105,7 @@ export function DonutLegend({ slices }: { slices: DonutSlice[] }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   centerLabel: { color: C.muted, fontFamily: F.sans, fontSize: 11 },
   centerValue: {
     color: C.ink,
@@ -120,5 +120,7 @@ const styles = StyleSheet.create({
   legendTicker: { color: C.ink, fontFamily: F.sans, fontSize: 12, fontWeight: '600' },
   legendPct: { color: C.muted, fontFamily: F.mono, fontSize: 12 },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });
 
 export { compact };

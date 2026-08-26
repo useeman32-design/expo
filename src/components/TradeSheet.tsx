@@ -7,7 +7,7 @@ import { useStore } from '@/store';
 import { getLogo } from '@/services/logos';
 import { Sheet, SheetRow, SuccessOverlay } from '@/components/Sheet';
 import { Button, Chip, StockLogo } from '@/components/primitives';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles } from '@/theme';
 import { money, price } from '@/utils';
 
 export function TradeSheet({
@@ -193,7 +193,7 @@ export function TradeSheet({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   stockHead: { flexDirection: 'row', alignItems: 'center', marginBottom: S.md },
   ticker: { color: C.ink, fontFamily: F.display, fontSize: 17, fontWeight: '800' },
   name: { color: C.muted, fontFamily: F.sans, fontSize: 12.5 },
@@ -272,3 +272,5 @@ const styles = StyleSheet.create({
     marginTop: S.sm,
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

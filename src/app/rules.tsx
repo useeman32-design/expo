@@ -19,7 +19,7 @@ import { useStore } from '@/store';
 import { getStock, getStocks } from '@/services/marketData';
 import { getLogo } from '@/services/logos';
 import { price as fmtPrice, money } from '@/utils';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 
 /**
  * Positions — user-defined conditional orders.
@@ -82,9 +82,9 @@ export default function RulesScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
-        <ScreenHeader title="Positions" subtitle="Set it, forget it, stay disciplined" />
+        <ScreenHeader title="Positions" subtitle="Set it, forget it, stay disciplined" showBack />
 
         {/* how it works */}
         <View style={{ paddingHorizontal: S.xl, marginTop: S.sm }}>
@@ -208,7 +208,18 @@ export default function RulesScreen() {
                       {selected.name}
                     </Text>
                   </View>
-                  <Text style={styles.scopedPrice}>{fmtPrice(selected.price)}</Text>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={styles.scopedPrice}>{fmtPrice(selected.price)}</Text>
+                    <Text
+                      style={[
+                        styles.scopedChange,
+                        { color: selected.changePct >= 0 ? C.positive : C.negative },
+                      ]}
+                    >
+                      {selected.changePct >= 0 ? '+' : ''}
+                      {selected.changePct.toFixed(2)}%
+                    </Text>
+                  </View>
                 </View>
               ) : (
                 <>
@@ -221,6 +232,11 @@ export default function RulesScreen() {
                   />
                 </>
               )}
+              {selected ? (
+                <Text style={styles.nowHint}>
+                  {selected.ticker} currently trades at {fmtPrice(selected.price)}
+                </Text>
+              ) : null}
 
               <Text style={styles.label}>When the price</Text>
             <View style={styles.trigRow}>
@@ -228,14 +244,23 @@ export default function RulesScreen() {
                 <Pressable
                   key={d}
                   onPress={() => setTrigger(d)}
-                  style={[styles.trigChip, trigger === d && styles.trigChipActive]}
+                  style={[
+                    styles.trigChip,
+                    trigger === d && (d === 'above' ? styles.trigChipActive : styles.trigChipDown),
+                  ]}
                 >
                   <Ionicons
                     name={d === 'above' ? 'trending-up' : 'trending-down'}
                     size={15}
-                    color={trigger === d ? C.white : C.ink2}
+                    color={trigger === d ? C.white : d === 'above' ? C.ink2 : C.negative}
                   />
-                  <Text style={[styles.trigText, trigger === d && { color: C.white }]}>
+                  <Text
+                    style={[
+                      styles.trigText,
+                      trigger === d && { color: C.white },
+                      trigger !== d && d === 'below' && { color: C.negative },
+                    ]}
+                  >
                     {d === 'above' ? 'Rises above' : 'Falls below'}
                   </Text>
                 </Pressable>
@@ -307,7 +332,7 @@ export default function RulesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   howRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   bolt: {
@@ -356,16 +381,16 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderRadius: R.lg,
     paddingVertical: S.lg,
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
   },
   addText: { color: C.green, fontFamily: F.sans, fontSize: 14.5, fontWeight: '700' },
-  riskCard: { backgroundColor: '#FFF9F0' },
+  riskCard: { backgroundColor: 'C.warnBg' },
   riskRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  riskTitle: { color: '#B07514', fontFamily: F.sans, fontSize: 13, fontWeight: '700' },
-  riskText: { color: '#8A6A2E', fontFamily: F.sans, fontSize: 12, lineHeight: 18, marginTop: 6 },
+  riskTitle: { color: C.warnTitle, fontFamily: F.sans, fontSize: 13, fontWeight: '700' },
+  riskText: { color: C.warnText, fontFamily: F.sans, fontSize: 12, lineHeight: 18, marginTop: 6 },
   backdrop: { flex: 1, backgroundColor: 'rgba(10,25,18,0.45)', justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     borderTopLeftRadius: R.xxl,
     borderTopRightRadius: R.xxl,
     padding: S.xl,
@@ -394,6 +419,8 @@ const styles = StyleSheet.create({
   scopedTicker: { color: C.ink, fontFamily: F.display, fontSize: 15, fontWeight: '800' },
   scopedName: { color: C.muted, fontFamily: F.sans, fontSize: 12, marginTop: 1 },
   scopedPrice: { color: C.greenDark, fontFamily: F.mono, fontSize: 13.5, fontWeight: '800' },
+  scopedChange: { fontFamily: F.mono, fontSize: 10.5, fontWeight: '700', marginTop: 1 },
+  nowHint: { color: C.muted, fontFamily: F.sans, fontSize: 12, marginTop: 8 },
   label: {
     color: C.ink2,
     fontFamily: F.sans,
@@ -426,6 +453,7 @@ const styles = StyleSheet.create({
     borderColor: C.hairline,
   },
   trigChipActive: { backgroundColor: C.green, borderColor: C.green },
+  trigChipDown: { backgroundColor: C.negative, borderColor: C.negative },
   buyActive: { backgroundColor: C.green, borderColor: C.green },
   sellActive: { backgroundColor: C.negative, borderColor: C.negative },
   trigText: { fontFamily: F.sans, fontSize: 13, fontWeight: '600', color: C.ink2 },
@@ -465,3 +493,5 @@ const styles = StyleSheet.create({
   },
   ctaText: { color: C.white, fontFamily: F.sans, fontSize: 15, fontWeight: '800' },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

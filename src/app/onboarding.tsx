@@ -8,7 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 
 import { useAuth } from '@/auth';
-import { C, F, R, S, SH } from '@/theme';
+import { C, F, R, S, SH, registerStyles, STATUSBAR } from '@/theme';
 import logoApp from '@/assets/images/logo-app.png';
 
 import img1 from '@/assets/onboarding/onboarding1.png';
@@ -65,7 +65,7 @@ export default function OnboardingScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
 
       {/* top bar */}
       <View style={[styles.topBar, { marginTop: insets.top + 6 }]}>
@@ -139,8 +139,8 @@ export default function OnboardingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: C.white },
+const makeStyles = () => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.surface },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     maxWidth: 340,
     aspectRatio: 1,
     borderRadius: R.xxl,
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     alignItems: 'center',
     justifyContent: 'center',
     ...SH.card,
@@ -231,3 +231,5 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

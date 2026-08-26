@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Card, ScreenHeader } from '@/components/primitives';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 
 export default function SecurityScreen() {
   const [pin, setPin] = useState(false);
@@ -13,9 +13,9 @@ export default function SecurityScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
-        <ScreenHeader title="Security" subtitle="Protect your account and money" />
+        <ScreenHeader title="Security" subtitle="Protect your account and money" showBack />
 
         <View style={{ paddingHorizontal: S.xl, marginTop: S.sm, gap: S.md }}>
           <Card pad={0} radius={R.lg}>
@@ -134,7 +134,7 @@ function Divider() {
   return <View style={{ height: 1, backgroundColor: C.hairlineSoft, marginLeft: 66 }} />;
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   toggleRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: S.lg },
   toggleIcon: {
@@ -177,3 +177,5 @@ const styles = StyleSheet.create({
   dangerText: { color: C.negative, fontFamily: F.sans, fontSize: 13.5, fontWeight: '700' },
   note: { color: C.faint, fontFamily: F.sans, fontSize: 12, lineHeight: 18, textAlign: 'center' },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

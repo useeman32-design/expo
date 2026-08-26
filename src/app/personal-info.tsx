@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Card, ScreenHeader } from '@/components/primitives';
 import { useAuth } from '@/auth';
 import { useKyc } from '@/kyc';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 
 export default function PersonalInfoScreen() {
   const { user } = useAuth();
@@ -20,9 +20,9 @@ export default function PersonalInfoScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
-        <ScreenHeader title="Personal Info" subtitle="Kept in sync with your KYC record" />
+        <ScreenHeader title="Personal Info" subtitle="Kept in sync with your KYC record" showBack />
 
         {/* verification status */}
         <View style={{ paddingHorizontal: S.xl, marginTop: S.sm }}>
@@ -93,7 +93,7 @@ export default function PersonalInfoScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   statusText: { fontFamily: F.sans, fontSize: 13.5, fontWeight: '700', flex: 1 },
@@ -130,3 +130,5 @@ const styles = StyleSheet.create({
   savedText: { color: C.green, fontFamily: F.sans, fontSize: 12, fontWeight: '600' },
   note: { color: C.faint, fontFamily: F.sans, fontSize: 12, lineHeight: 18, textAlign: 'center' },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { NotificationItem } from '@/types';
 import { Card, ScreenHeader } from '@/components/primitives';
 import { getNotifications } from '@/services/notifications';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 
 export default function NotificationsScreen() {
   const [items, setItems] = useState<NotificationItem[]>(() => getNotifications());
@@ -18,7 +18,7 @@ export default function NotificationsScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScreenHeader
         title="Notifications"
         subtitle={unread ? `${unread} unread` : "You're all caught up"}
@@ -86,7 +86,7 @@ function NotifCard({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   markAllBtn: {
     paddingHorizontal: 12,
@@ -154,3 +154,5 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

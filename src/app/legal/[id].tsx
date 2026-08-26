@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Card, ScreenHeader } from '@/components/primitives';
 import { getLegalDoc } from '@/services/legal';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 
 export default function LegalDocScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -14,7 +14,7 @@ export default function LegalDocScreen() {
   if (!doc) {
     return (
       <View style={styles.screen}>
-        <StatusBar style="dark" />
+        <StatusBar style={STATUSBAR} />
         <ScreenHeader title="Document" showBack />
         <View style={{ padding: S.xl, marginTop: S.xxl, alignItems: 'center' }}>
           <Ionicons name="document-outline" size={40} color={C.faint} />
@@ -26,7 +26,7 @@ export default function LegalDocScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
         <ScreenHeader title={doc.title} subtitle={doc.subtitle} showBack />
 
@@ -58,10 +58,10 @@ export default function LegalDocScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   missing: { color: C.muted, fontFamily: F.sans, fontSize: 14, marginTop: S.md },
-  metaCard: { backgroundColor: C.white },
+  metaCard: { backgroundColor: C.surface },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   metaIcon: {
     width: 32,
@@ -80,3 +80,5 @@ const styles = StyleSheet.create({
     marginTop: S.md,
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

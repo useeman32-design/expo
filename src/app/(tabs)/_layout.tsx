@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 
-import { C, F, R, S, SH } from '@/theme';
+import { C, F, R, S, SH, registerStyles } from '@/theme';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -86,7 +86,7 @@ export default function TabsLayout() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   wrap: {
     position: 'absolute',
     left: S.lg,
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   },
   bar: {
     flexDirection: 'row',
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     borderRadius: R.xxl,
     paddingVertical: 10,
     paddingHorizontal: S.sm,
@@ -120,3 +120,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

@@ -8,7 +8,7 @@ import { useStore } from '@/store';
 import { getStock } from '@/services/marketData';
 import { getLogo } from '@/services/logos';
 import { price as fmtPrice } from '@/utils';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 
 export default function WatchlistScreen() {
   const router = useRouter();
@@ -17,9 +17,9 @@ export default function WatchlistScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
-        <ScreenHeader title="Watchlist" subtitle="Stocks you're tracking" />
+        <ScreenHeader title="Watchlist" subtitle="Stocks you're tracking" showBack />
 
         <View style={{ paddingHorizontal: S.xl, marginTop: S.sm, gap: S.sm }}>
           {stocks.length === 0 ? (
@@ -69,7 +69,7 @@ export default function WatchlistScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   left: { flexDirection: 'row', alignItems: 'center', gap: 11, flex: 1 },
@@ -88,3 +88,5 @@ const styles = StyleSheet.create({
   },
   browseText: { color: C.white, fontFamily: F.sans, fontSize: 14, fontWeight: '700' },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

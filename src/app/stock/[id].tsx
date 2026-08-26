@@ -14,7 +14,7 @@ import { TIMEFRAME_ORDER, type Timeframe } from '@/services/chartData';
 import { TradeSheet } from '@/components/TradeSheet';
 import { getStock } from '@/services/marketData';
 import { getLogo } from '@/services/logos';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles } from '@/theme';
 
 export default function StockDetailScreen() {
   const router = useRouter();
@@ -207,7 +207,7 @@ function BuySellButton({ label, tone, onPress }: { label: string; tone: 'green' 
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   header: { borderBottomLeftRadius: 28, borderBottomRightRadius: 28, overflow: 'hidden' },
   headerPad: { paddingHorizontal: S.xl, paddingBottom: S.xl },
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   },
   range: { flex: 1, paddingVertical: 8, borderRadius: R.pill, alignItems: 'center' },
   rangeActive: {
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     shadowColor: '#0A3D28',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.12,
@@ -275,3 +275,5 @@ const styles = StyleSheet.create({
   bsBtn: { flex: 1, paddingVertical: 16, borderRadius: R.md, alignItems: 'center' },
   bsText: { color: C.white, fontFamily: F.sans, fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

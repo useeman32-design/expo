@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { Card, ScreenHeader } from '@/components/primitives';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 
 export default function ReferralScreen() {
   const code = 'USMAN-X4K9';
@@ -18,9 +18,9 @@ export default function ReferralScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
-        <ScreenHeader title="Invite Friends" subtitle="₦1,000 for you · ₦1,000 for them" />
+        <ScreenHeader title="Invite Friends" subtitle="₦1,000 for you · ₦1,000 for them" showBack />
 
         {/* hero card */}
         <View style={{ paddingHorizontal: S.xl, marginTop: S.sm }}>
@@ -103,7 +103,7 @@ export default function ReferralScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   hero: {
     alignItems: 'center',
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     paddingVertical: 13,
     borderRadius: R.md,
     marginTop: S.md,
@@ -182,3 +182,5 @@ const styles = StyleSheet.create({
   stepText: { color: C.ink2, fontFamily: F.sans, fontSize: 13.5, flex: 1 },
   note: { color: C.faint, fontFamily: F.sans, fontSize: 12, lineHeight: 18, textAlign: 'center' },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

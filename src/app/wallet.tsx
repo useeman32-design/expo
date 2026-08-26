@@ -9,7 +9,7 @@ import { KIND_META, ReceiptModal } from '@/components/ReceiptModal';
 import { useStore } from '@/store';
 import { TRANSACTIONS } from '@/services/wallet';
 import { money } from '@/utils';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 import type { TxKind, WalletTransaction } from '@/types';
 
 const FILTERS: { id: 'all' | TxKind; label: string }[] = [
@@ -41,9 +41,9 @@ export default function WalletScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
-        <ScreenHeader title="Wallet" subtitle="Every naira in and out" />
+        <ScreenHeader title="Wallet" subtitle="Every naira in and out" showBack />
 
         {/* balance card */}
         <View style={{ paddingHorizontal: S.xl, marginTop: S.sm }}>
@@ -176,7 +176,7 @@ export default function WalletScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   balanceLabel: { color: C.muted, fontFamily: F.sans, fontSize: 13 },
   balance: {
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: R.pill,
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: C.hairline,
   },
@@ -248,3 +248,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

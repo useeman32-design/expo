@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, ViewSt
 import { Ionicons } from '@expo/vector-icons';
 
 import { AppleLogo, GoogleLogo } from '@/components/SocialIcons';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles } from '@/theme';
 
 /* ---------------- Social login button ---------------- */
 export function SocialButton({
@@ -83,7 +83,7 @@ export function LabeledInput({
   );
 }
 
-const social = StyleSheet.create({
+const makeSocial = () => StyleSheet.create({
   btn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -91,7 +91,7 @@ const social = StyleSheet.create({
     paddingHorizontal: S.lg,
     height: 52,
     borderRadius: R.md,
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: C.hairline,
   },
@@ -104,8 +104,10 @@ const social = StyleSheet.create({
     marginLeft: 12,
   },
 });
+let social = makeSocial();
+registerStyles(() => { social = makeSocial(); });
 
-const field = StyleSheet.create({
+const makeField = () => StyleSheet.create({
   wrap: { marginBottom: S.lg },
   label: {
     color: C.muted,
@@ -117,7 +119,7 @@ const field = StyleSheet.create({
   box: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: C.hairline,
     borderRadius: R.md,
@@ -141,3 +143,5 @@ const field = StyleSheet.create({
     marginLeft: 2,
   },
 });
+let field = makeField();
+registerStyles(() => { field = makeField(); });

@@ -6,7 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Avatar, Card, ScreenHeader } from '@/components/primitives';
 import { useAuth } from '@/auth';
-import { C, F, R, S } from '@/theme';
+import { useAppearance, type ThemePref } from '@/appearance';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 
 type Row =
   | {
@@ -77,6 +78,7 @@ export default function SettingsScreen() {
   });
 
   const { user, signOut, resetOnboarding } = useAuth();
+  const { pref, mode, setPref } = useAppearance();
   const router = useRouter();
 
   const LINK_ROUTES: Record<string, string> = {
@@ -106,7 +108,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScreenHeader title="Settings" showBack />
 
       <ScrollView
@@ -127,6 +129,44 @@ export default function SettingsScreen() {
             <Pressable style={styles.editBtn}>
               <Text style={styles.editText}>Edit</Text>
             </Pressable>
+          </View>
+        </Card>
+
+        {/* appearance */}
+        <Card pad={S.lg} radius={R.lg} style={{ marginBottom: S.xxl }}>
+          <View style={styles.themeHead}>
+            <Ionicons name="contrast-outline" size={17} color={C.green} />
+            <Text style={styles.themeTitle}>Appearance</Text>
+            <Text style={styles.themeValue}>
+              {pref === 'system' ? `System · ${mode}` : pref === 'dark' ? 'Dark' : 'Light'}
+            </Text>
+          </View>
+          <View style={styles.themeRow}>
+            {(
+              [
+                { id: 'system', label: 'System', icon: 'phone-portrait-outline' },
+                { id: 'light', label: 'Light', icon: 'sunny-outline' },
+                { id: 'dark', label: 'Dark', icon: 'moon-outline' },
+              ] as { id: ThemePref; label: string; icon: string }[]
+            ).map((opt) => {
+              const active = pref === opt.id;
+              return (
+                <Pressable
+                  key={opt.id}
+                  onPress={() => setPref(opt.id)}
+                  style={[styles.themeOpt, active && styles.themeOptActive]}
+                >
+                  <Ionicons
+                    name={opt.icon as never}
+                    size={17}
+                    color={active ? C.white : C.muted}
+                  />
+                  <Text style={[styles.themeOptText, active && { color: C.white }]}>
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
         </Card>
 
@@ -205,7 +245,25 @@ function SettingsRow({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
+  themeHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  themeTitle: { flex: 1, color: C.ink, fontFamily: F.sans, fontSize: 14.5, fontWeight: '700' },
+  themeValue: { color: C.green, fontFamily: F.sans, fontSize: 12, fontWeight: '600' },
+  themeRow: { flexDirection: 'row', gap: S.sm, marginTop: S.md },
+  themeOpt: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    paddingVertical: 11,
+    borderRadius: R.md,
+    backgroundColor: C.canvas,
+    borderWidth: 1,
+    borderColor: C.hairline,
+  },
+  themeOptActive: { backgroundColor: C.green, borderColor: C.green },
+  themeOptText: { color: C.ink2, fontFamily: F.sans, fontSize: 12.5, fontWeight: '700' },
   screen: { flex: 1, backgroundColor: C.canvas },
   profile: { flexDirection: 'row', alignItems: 'center' },
   profileName: { color: C.ink, fontFamily: F.sans, fontSize: 17, fontWeight: '800', letterSpacing: -0.2 },
@@ -257,7 +315,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 16,
     borderRadius: R.md,
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: C.hairline,
   },
@@ -278,3 +336,5 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

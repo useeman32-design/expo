@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useStore } from '@/store';
-import { C, F, R, SH } from '@/theme';
+import { C, F, R, SH, registerStyles } from '@/theme';
 
 export function Toast() {
   const { toast } = useStore();
@@ -24,7 +24,7 @@ export function Toast() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   wrap: {
     position: 'absolute',
     left: 0,
@@ -48,3 +48,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

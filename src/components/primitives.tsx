@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { C, F, R, S, SH } from '@/theme';
+import { C, F, R, S, SH, registerStyles } from '@/theme';
 import { pct } from '@/utils';
 
 /* ---------------- Card ---------------- */
@@ -148,7 +148,7 @@ export function Chip({
         styles.chip,
         active
           ? { backgroundColor: C.green, borderColor: C.green }
-          : { backgroundColor: C.white, borderColor: C.hairline },
+          : { backgroundColor: C.surface, borderColor: C.hairline },
       ]}
     >
       <Text
@@ -338,7 +338,7 @@ export function ScreenHeader({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   card: {
     backgroundColor: C.card,
     ...SH.card,
@@ -475,3 +475,5 @@ const styles = StyleSheet.create({
     marginBottom: 1,
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

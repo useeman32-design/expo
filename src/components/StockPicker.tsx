@@ -4,7 +4,8 @@ import { Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } fro
 import { StockLogo } from '@/components/primitives';
 import { getLogo } from '@/services/logos';
 import type { Stock } from '@/types';
-import { C, F, R, S } from '@/theme';
+import { price as fmtPrice } from '@/utils';
+import { C, F, R, S, registerStyles } from '@/theme';
 
 /**
  * Stock selection grid used wherever the user picks a stock to activate
@@ -69,6 +70,9 @@ export function StockPicker({
               <Text style={[styles.ticker, active && styles.tickerActive]} numberOfLines={1}>
                 {s.ticker}
               </Text>
+              <Text style={[styles.tilePrice, active && styles.tilePriceActive]} numberOfLines={1}>
+                {fmtPrice(s.price, s.currency === 'NGN' ? '₦' : '$')}
+              </Text>
             </Pressable>
           );
         })}
@@ -83,7 +87,7 @@ export function StockPicker({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   search: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -124,6 +128,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   tickerActive: { color: C.greenDark },
+  tilePrice: {
+    color: C.faint,
+    fontFamily: F.mono,
+    fontSize: 9.5,
+    fontWeight: '600',
+    alignSelf: 'stretch',
+    textAlign: 'center',
+  },
+  tilePriceActive: { color: C.green },
   empty: {
     color: C.muted,
     fontFamily: F.sans,
@@ -139,3 +152,5 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

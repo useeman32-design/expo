@@ -7,7 +7,7 @@ import { DIVIDENDS } from '@/services/support';
 import { getStock } from '@/services/marketData';
 import { getLogo } from '@/services/logos';
 import { money } from '@/utils';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 
 export default function DividendsScreen() {
   const paid = DIVIDENDS.filter((d) => d.status === 'Paid');
@@ -15,9 +15,9 @@ export default function DividendsScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
-        <ScreenHeader title="Dividends" subtitle="Corporate actions on your holdings" />
+        <ScreenHeader title="Dividends" subtitle="Corporate actions on your holdings" showBack />
 
         <View style={{ paddingHorizontal: S.xl, marginTop: S.sm }}>
           <Card pad={S.xl} radius={R.xl}>
@@ -92,7 +92,7 @@ export default function DividendsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   totalLabel: { color: C.muted, fontFamily: F.sans, fontSize: 13 },
   total: {
@@ -121,3 +121,5 @@ const styles = StyleSheet.create({
   statusText: { fontFamily: F.sans, fontSize: 10.5, fontWeight: '700' },
   note: { color: C.faint, fontFamily: F.sans, fontSize: 12, lineHeight: 18, textAlign: 'center' },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

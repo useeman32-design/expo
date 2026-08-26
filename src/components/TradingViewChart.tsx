@@ -4,7 +4,7 @@ import { WebView } from 'react-native-webview';
 
 import type { Stock } from '@/types';
 import { generateSeries, type Timeframe } from '@/services/chartData';
-import { C, F } from '@/theme';
+import { C, F, registerStyles } from '@/theme';
 
 /**
  * Professional price chart using TradingView Lightweight Charts (v4), matching
@@ -29,11 +29,13 @@ export function TradingViewChart({
   const data = generateSeries(stock.id, stock.price, stock.volume, timeframe);
   const mode = type === 'line' ? 'area' : 'candles';
   const payload = JSON.stringify(data);
+  const chartBg = C.card;
+  const chartText = C.muted;
 
   const html = `<!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <style>
-  html,body{margin:0;padding:0;background:#ffffff;height:100%;overflow:hidden;}
+  html,body{margin:0;padding:0;background:${chartBg};height:100%;overflow:hidden;}
   #chart{position:absolute;inset:0;}
 </style></head>
 <body>
@@ -48,11 +50,11 @@ export function TradingViewChart({
       var data = ${payload};
       var chart = LC.createChart(document.getElementById('chart'), {
         autoSize: true,
-        layout: { background:{ type:'solid', color:'#ffffff' }, textColor:'#6C7771', fontSize:11, fontFamily:'Inter, system-ui, sans-serif' },
-        grid: { vertLines:{ color:'rgba(15,23,42,0.05)' }, horzLines:{ color:'rgba(15,23,42,0.05)' } },
+        layout: { background:{ type:'solid', color:'${chartBg}' }, textColor:'${chartText}', fontSize:11, fontFamily:'Inter, system-ui, sans-serif' },
+        grid: { vertLines:{ color:'rgba(128,140,132,0.10)' }, horzLines:{ color:'rgba(128,140,132,0.10)' } },
         crosshair: { mode: LC.CrosshairMode.Normal, vertLine:{ labelBackgroundColor:'#0E8A57' }, horzLine:{ labelBackgroundColor:'#0E8A57' } },
-        rightPriceScale: { borderColor:'rgba(15,23,42,0.12)' },
-        timeScale: { borderColor:'rgba(15,23,42,0.12)', timeVisible:true, secondsVisible:false, rightOffset:2 },
+        rightPriceScale: { borderColor:'rgba(128,140,132,0.18)' },
+        timeScale: { borderColor:'rgba(128,140,132,0.18)', timeVisible:true, secondsVisible:false, rightOffset:2 },
         handleScale: true,
         handleScroll: true
       });
@@ -105,15 +107,15 @@ export function TradingViewChart({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   wrap: {
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
   },
   web: {
     flex: 1,
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
   },
   loading: {
     position: 'absolute',
@@ -132,3 +134,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

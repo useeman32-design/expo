@@ -18,7 +18,7 @@ import {
   getContinueLearning,
   overallProgress,
 } from '@/services/learning';
-import { C, F, R, S, SH } from '@/theme';
+import { C, F, R, S, SH, registerStyles, STATUSBAR } from '@/theme';
 
 const CAT_TILES = [
   { label: 'Stock Basics', icon: 'cube', color: '#11A06B', category: 'Beginner' },
@@ -38,7 +38,7 @@ export default function LearnScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 110 }}>
         <ScreenHeader title="Learn" subtitle={`Your progress · ${progress}%`} />
 
@@ -142,7 +142,7 @@ export default function LearnScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   contRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   contIcon: {
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   catTile: {
     flex: 1,
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     borderRadius: R.lg,
     padding: S.lg,
     gap: 10,
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   courseList: { gap: S.md },
   glossCard: {
     width: 200,
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     borderRadius: R.lg,
     padding: S.lg,
     ...SH.soft,
@@ -237,3 +237,5 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

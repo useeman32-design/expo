@@ -1,11 +1,21 @@
 import { Platform } from 'react-native';
 
 /**
- * StocksX design system — premium light fintech.
- * Deep emerald hero, soft off-white canvas, white rounded cards, soft shadows.
+ * StocksX design system — premium fintech, light & dark.
+ * Light: deep emerald hero, soft off-white canvas, white cards.
+ * Dark: near-black green-tinted canvas, graphite cards, brighter emerald accents.
+ *
+ * `C` is the LIVE palette — a mutable object swapped in place by applyTheme().
+ * Every module's StyleSheet is created through `makeStyles()` factories that
+ * re-read C, and registered with registerStyles() so a theme switch refreshes
+ * all of them; the root tree is remounted with a new key to re-render inline
+ * colors as well.
  */
 
-export const C = {
+export type ThemeMode = 'light' | 'dark';
+
+const LIGHT = {
+  // NOTE: no `as const` — the palette type must be `string` so DARK can swap values
   // ---- Brand greens ----
   green: '#0E8A57',
   greenDark: '#0A6B41',
@@ -23,8 +33,9 @@ export const C = {
   greenTint: '#F1F9F5',
 
   // ---- Neutrals ----
-  white: '#FFFFFF',
-  canvas: '#F4F6F5', // soft off-white page background
+  white: '#FFFFFF', // on-accent text color (stays white in both themes)
+  surface: '#FFFFFF', // cards / sheets / inputs background
+  canvas: '#F4F6F5', // page background
   canvasAlt: '#EDF1EE',
   card: '#FFFFFF',
   hairline: '#EAEFEB',
@@ -42,10 +53,95 @@ export const C = {
   negative: '#DD4B3E',
   negativeSoft: '#FCEAE8',
 
+  // ---- Warning (info cards) ----
+  warnBg: '#FFF9F0',
+  warnTitle: '#B07514',
+  warnText: '#8A6A2E',
+
   // ---- Misc ----
-  dark: '#16211B',
+  dark: '#16211B', // secondary "dark" button
   darkSoft: '#22302A',
-} as const;
+};
+
+const DARK: typeof LIGHT = {
+  // ---- Brand greens (brighter for dark surfaces) ----
+  green: '#12A26A',
+  greenDark: '#0E8A57',
+  greenDeep: '#0A6B41',
+  greenBright: '#18B478',
+  greenGlow: '#0FB372',
+
+  // hero gradient — deep emerald, keeps the brand feel on dark
+  hero1: '#07301E',
+  hero2: '#0A5236',
+  hero3: '#0E7A50',
+
+  // dark green tints
+  greenSoft: '#122B1F',
+  greenTint: '#0D2118',
+
+  // ---- Neutrals ----
+  white: '#FFFFFF', // on-accent text stays white
+  surface: '#121814', // cards / sheets / inputs
+  canvas: '#0B0F0D', // page background
+  canvasAlt: '#161C18',
+  card: '#121814',
+  hairline: '#232C26',
+  hairlineSoft: '#1C241F',
+
+  // ---- Text ----
+  ink: '#EDF4EF',
+  ink2: '#C3CEC7',
+  muted: '#8E9A92',
+  faint: '#5F6B64',
+
+  // ---- Semantic ----
+  positive: '#18BE7C',
+  positiveSoft: '#10301F',
+  negative: '#E5584C',
+  negativeSoft: '#351B17',
+
+  // ---- Warning ----
+  warnBg: '#2B2416',
+  warnTitle: '#E3B25C',
+  warnText: '#B99553',
+
+  // ---- Misc ----
+  dark: '#1D2823', // secondary "dark" button (lighter than canvas)
+  darkSoft: '#26332C',
+};
+
+/** Live palette — mutated in place by applyTheme(). */
+export const C: { [K in keyof typeof LIGHT]: string } = { ...LIGHT };
+
+/** Status-bar icon style for the current theme ('dark' icons on light bg etc). */
+export let STATUSBAR: 'light' | 'dark' = 'dark';
+
+let applied: ThemeMode | null = null;
+const styleRefreshers: Array<() => void> = [];
+
+/**
+ * Modules register their StyleSheet factory here so a theme switch can
+ * re-create every style object with the new palette.
+ */
+export function registerStyles(refresh: () => void): void {
+  styleRefreshers.push(refresh);
+}
+
+/** Swap the live palette (idempotent — no-op if `mode` is already applied). */
+export function applyTheme(mode: ThemeMode): void {
+  if (applied === mode) return;
+  applied = mode;
+  Object.assign(C, mode === 'dark' ? DARK : LIGHT);
+  STATUSBAR = mode === 'dark' ? 'light' : 'dark';
+  for (const refresh of styleRefreshers) {
+    try {
+      refresh();
+    } catch {
+      /* a broken style factory should never take the app down */
+    }
+  }
+}
 
 export const R = {
   xs: 10,

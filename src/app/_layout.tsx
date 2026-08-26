@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import { Stack, useRouter, useSegments } from 'expo-router';
 
-import { C, F } from '@/theme';
+import { C, F, registerStyles } from '@/theme';
+import { AppearanceProvider, useAppearance } from '@/appearance';
 import { StoreProvider } from '@/store';
 import { AuthProvider, useAuth } from '@/auth';
 import { KycProvider } from '@/kyc';
 import { initLiveMarket, LIVE_ENABLED } from '@/services/liveMarket';
 import { Toast } from '@/components/Toast';
+import logoApp from '@/assets/images/logo-app.png';
 
 // Web typography: self-hosted variable fonts (public/fonts), matching the
 // StocksX web reference — Inter for text, Space Grotesk for display/numerals.
@@ -55,9 +58,7 @@ function useProtectedRoute(ready: boolean, onboarded: boolean, user: unknown) {
 function Splash() {
   return (
     <View style={splash.wrap}>
-      <View style={splash.dot}>
-        <Text style={splash.letter}>S</Text>
-      </View>
+      <Image source={logoApp} style={splash.logo} contentFit="contain" />
       <Text style={splash.name}>StocksX</Text>
       <ActivityIndicator color={C.green} style={{ marginTop: 18 }} />
     </View>
@@ -109,28 +110,29 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <KycProvider>
-        <StoreProvider>
-          <RootNavigator />
-          <Toast />
-        </StoreProvider>
-      </KycProvider>
-    </AuthProvider>
+    <AppearanceProvider>
+      <AuthProvider>
+        <KycProvider>
+          <StoreProvider>
+            {/* keyed by theme mode: a switch remounts the tree so every
+                inline color re-reads the (already swapped) palette */}
+            <ThemedRoot />
+            <Toast />
+          </StoreProvider>
+        </KycProvider>
+      </AuthProvider>
+    </AppearanceProvider>
   );
 }
 
-const splash = StyleSheet.create({
+function ThemedRoot() {
+  const { mode } = useAppearance();
+  return <RootNavigator key={mode} />;
+}
+
+const makeSplash = () => StyleSheet.create({
   wrap: { flex: 1, backgroundColor: C.canvas, alignItems: 'center', justifyContent: 'center' },
-  dot: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: C.green,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  letter: { color: C.white, fontFamily: F.sans, fontSize: 30, fontWeight: '900' },
+  logo: { width: 64, height: 64, borderRadius: 18 },
   name: {
     color: C.ink,
     fontFamily: F.sans,
@@ -140,3 +142,5 @@ const splash = StyleSheet.create({
     marginTop: 16,
   },
 });
+let splash = makeSplash();
+registerStyles(() => { splash = makeSplash(); });

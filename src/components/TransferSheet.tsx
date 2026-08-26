@@ -8,7 +8,7 @@ import { Button, Chip } from '@/components/primitives';
 import { BANK_ACCOUNTS, DEPOSIT_METHODS } from '@/services/wallet';
 import { DEPOSIT_LIMITS } from '@/services/kyc';
 import { useKyc } from '@/kyc';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles } from '@/theme';
 import { money } from '@/utils';
 
 /** USSD short codes per bank (Flutterwave-style merchant billing). */
@@ -409,7 +409,7 @@ function usdBankSafe(name: string): string {
   return USSD_BANKS.some((b) => b.name === name) ? name : USSD_BANKS[0].name;
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   balanceBox: {
     backgroundColor: C.canvas,
     borderRadius: R.lg,
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     borderRadius: R.md,
     paddingVertical: 8,
     paddingHorizontal: S.sm + 2,
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
   },
   methodCardActive: { borderColor: C.green, backgroundColor: C.greenTint },
   methodIcon: {
@@ -579,3 +579,5 @@ const styles = StyleSheet.create({
     marginTop: S.sm,
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

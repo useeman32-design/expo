@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import type { Course } from '@/types';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles } from '@/theme';
 
 export function LearnCard({
   course,
@@ -53,7 +53,7 @@ const base = {
   elevation: 2,
 };
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   card: { ...base },
   hCard: { ...base, width: 180 },
   icon: {
@@ -89,3 +89,5 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

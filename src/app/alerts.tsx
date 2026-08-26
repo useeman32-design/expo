@@ -19,7 +19,7 @@ import { useStore } from '@/store';
 import { getStocks } from '@/services/marketData';
 import { getLogo } from '@/services/logos';
 import { price as fmtPrice } from '@/utils';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 
 export default function AlertsScreen() {
   const router = useRouter();
@@ -46,9 +46,9 @@ export default function AlertsScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
-        <ScreenHeader title="Price Alerts" subtitle="Get notified at your price" />
+        <ScreenHeader title="Price Alerts" subtitle="Get notified at your price" showBack />
 
         <View style={{ paddingHorizontal: S.xl, marginTop: S.sm, gap: S.sm }}>
           {alerts.length === 0 ? (
@@ -137,14 +137,23 @@ export default function AlertsScreen() {
                 <Pressable
                   key={d}
                   onPress={() => setDirection(d)}
-                  style={[styles.dirChip, direction === d && styles.dirChipActive]}
+                  style={[
+                    styles.dirChip,
+                    direction === d && (d === 'above' ? styles.dirChipActive : styles.dirChipDown),
+                  ]}
                 >
                   <Ionicons
                     name={d === 'above' ? 'trending-up' : 'trending-down'}
                     size={15}
-                    color={direction === d ? C.white : C.ink2}
+                    color={direction === d ? C.white : d === 'above' ? C.ink2 : C.negative}
                   />
-                  <Text style={[styles.dirText, direction === d && { color: C.white }]}>
+                  <Text
+                    style={[
+                      styles.dirText,
+                      direction === d && { color: C.white },
+                      direction !== d && d === 'below' && { color: C.negative },
+                    ]}
+                  >
                     {d === 'above' ? 'Rises above' : 'Falls below'}
                   </Text>
                 </Pressable>
@@ -178,7 +187,7 @@ export default function AlertsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   row: { flexDirection: 'row', alignItems: 'center', gap: 11 },
   left: { flexDirection: 'row', alignItems: 'center', gap: 11, flex: 1 },
@@ -199,13 +208,13 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderRadius: R.lg,
     paddingVertical: S.lg,
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
   },
   addText: { color: C.green, fontFamily: F.sans, fontSize: 14.5, fontWeight: '700' },
   note: { color: C.faint, fontFamily: F.sans, fontSize: 12, lineHeight: 18, textAlign: 'center' },
   backdrop: { flex: 1, backgroundColor: 'rgba(10,25,18,0.45)', justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     borderTopLeftRadius: R.xxl,
     borderTopRightRadius: R.xxl,
     padding: S.xl,
@@ -251,6 +260,7 @@ const styles = StyleSheet.create({
     borderColor: C.hairline,
   },
   dirChipActive: { backgroundColor: C.green, borderColor: C.green },
+  dirChipDown: { backgroundColor: C.negative, borderColor: C.negative },
   dirText: { fontFamily: F.sans, fontSize: 13, fontWeight: '600', color: C.ink2 },
   input: {
     backgroundColor: C.canvas,
@@ -274,3 +284,5 @@ const styles = StyleSheet.create({
   },
   ctaText: { color: C.white, fontFamily: F.sans, fontSize: 15, fontWeight: '800' },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

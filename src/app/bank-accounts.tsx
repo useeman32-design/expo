@@ -16,7 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { Card, ScreenHeader } from '@/components/primitives';
 import { BANKS, BANK_ACCOUNTS } from '@/services/wallet';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 import type { BankAccount } from '@/types';
 
 export default function BankAccountsScreen() {
@@ -64,12 +64,11 @@ export default function BankAccountsScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
         <ScreenHeader
           title="Bank Accounts"
-          subtitle="Withdrawals are paid to accounts in your own name"
-        />
+          subtitle="Withdrawals are paid to accounts in your own name" showBack />
 
         <View style={{ paddingHorizontal: S.xl, marginTop: S.sm, gap: S.md }}>
           {accounts.map((a) => (
@@ -177,7 +176,7 @@ export default function BankAccountsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   bankIcon: {
@@ -212,13 +211,13 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderRadius: R.lg,
     paddingVertical: S.lg,
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
   },
   addText: { color: C.green, fontFamily: F.sans, fontSize: 14.5, fontWeight: '700' },
   note: { color: C.faint, fontFamily: F.sans, fontSize: 12, lineHeight: 18, textAlign: 'center' },
   sheetBackdrop: { flex: 1, backgroundColor: 'rgba(10,25,18,0.45)', justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     borderTopLeftRadius: R.xxl,
     borderTopRightRadius: R.xxl,
     padding: S.xl,
@@ -275,3 +274,5 @@ const styles = StyleSheet.create({
   cta: { alignItems: 'center', paddingVertical: 15, borderRadius: R.md },
   ctaText: { color: C.white, fontFamily: F.sans, fontSize: 15, fontWeight: '800' },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

@@ -10,7 +10,7 @@ import {
   getCourse,
   getLessonByCourse,
 } from '@/services/learning';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 
 export default function LessonDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -33,7 +33,7 @@ export default function LessonDetailScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         <ScreenHeader title={course.category} subtitle="Lesson" showBack />
 
@@ -139,7 +139,7 @@ export default function LessonDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   badge: {
     flexDirection: 'row',
@@ -230,3 +230,5 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

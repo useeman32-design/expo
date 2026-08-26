@@ -8,7 +8,7 @@ import { getStock } from '@/services/marketData';
 import { getLogo } from '@/services/logos';
 import { ORDERS } from '@/services/orders';
 import { money, price as fmtPrice } from '@/utils';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 import type { Order } from '@/types';
 
 /** Status pill colors across the order lifecycle. */
@@ -46,7 +46,7 @@ export default function OrderDetailScreen() {
   if (!o || !stock) {
     return (
       <View style={styles.screen}>
-        <StatusBar style="dark" />
+        <StatusBar style={STATUSBAR} />
         <ScreenHeader title="Order" showBack />
         <View style={{ padding: S.xl, marginTop: S.xxl, alignItems: 'center' }}>
           <Ionicons name="receipt-outline" size={40} color={C.faint} />
@@ -63,7 +63,7 @@ export default function OrderDetailScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
         <ScreenHeader title="Order detail" subtitle={o.reference ?? o.id} showBack />
 
@@ -167,7 +167,7 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   missing: { color: C.muted, fontFamily: F.sans, fontSize: 14, marginTop: S.md },
   stockRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
@@ -227,3 +227,5 @@ const styles = StyleSheet.create({
   },
   viewStockText: { color: C.green, fontFamily: F.sans, fontSize: 14.5, fontWeight: '700' },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

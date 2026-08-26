@@ -8,7 +8,7 @@ import { useStore } from '@/store';
 import { getLogo } from '@/services/logos';
 import { getStock } from '@/services/marketData';
 import type { OrderStatus } from '@/types';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 import { price } from '@/utils';
 
 const FILTERS = ['All', 'Open', 'Completed', 'Settled', 'Cancelled'] as const;
@@ -31,7 +31,7 @@ export default function OrdersScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         <ScreenHeader title="Orders" subtitle="Your trade history" showBack />
 
@@ -99,7 +99,7 @@ export default function OrdersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   row: {
     flexDirection: 'row',
@@ -140,3 +140,5 @@ const styles = StyleSheet.create({
     paddingVertical: 30,
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

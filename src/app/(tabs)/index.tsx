@@ -35,7 +35,7 @@ import {
   getCourses,
   getContinueLearning,
 } from '@/services/learning';
-import { C, F, R, S, SH } from '@/theme';
+import { C, F, R, S, SH, registerStyles } from '@/theme';
 import { genSpark, money, pct } from '@/utils';
 
 const WATCH = ['mtnn', 'gtco', 'zenith', 'dangcem'];
@@ -238,7 +238,7 @@ function Section({ children, style }: { children: React.ReactNode; style?: objec
   return <View style={[{ paddingHorizontal: S.xl }, style]}>{children}</View>;
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   hero: {
     borderBottomLeftRadius: 30,
@@ -397,3 +397,5 @@ const styles = StyleSheet.create({
   },
   barFill: { height: 6, borderRadius: 3 },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

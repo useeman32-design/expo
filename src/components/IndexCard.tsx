@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { MarketIndex } from '@/types';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles } from '@/theme';
 import { ChangePill } from '@/components/primitives';
 import { Chart } from '@/components/Chart';
 
@@ -37,7 +37,7 @@ export function IndexCard({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   card: {
     flex: 1,
     backgroundColor: C.card,
@@ -70,3 +70,5 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

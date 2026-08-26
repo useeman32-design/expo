@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Card, ScreenHeader, StockLogo } from '@/components/primitives';
 import { getStocks } from '@/services/marketData';
 import { getLogo } from '@/services/logos';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 
 /**
  * Sharia screening methodology + per-stock results.
@@ -52,9 +52,9 @@ export default function ShariaScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
-        <ScreenHeader title="Sharia Screening" subtitle="AAOIFI Standard 21 methodology" />
+        <ScreenHeader title="Sharia Screening" subtitle="AAOIFI Standard 21 methodology" showBack />
 
         {/* intro */}
         <View style={{ paddingHorizontal: S.xl, marginTop: S.sm }}>
@@ -142,7 +142,7 @@ export default function ShariaScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   introRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   moonIcon: {
@@ -189,3 +189,5 @@ const styles = StyleSheet.create({
   badgeText: { fontFamily: F.sans, fontSize: 10.5, fontWeight: '700' },
   note: { color: C.faint, fontFamily: F.sans, fontSize: 12, lineHeight: 18, textAlign: 'center' },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

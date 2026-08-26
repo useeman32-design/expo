@@ -5,14 +5,14 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Card, ScreenHeader } from '@/components/primitives';
 import { LEGAL_DOCS } from '@/services/legal';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 
 export default function LegalScreen() {
   const router = useRouter();
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         <ScreenHeader
           title="Legal & Policies"
@@ -49,7 +49,7 @@ export default function LegalScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   icon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
@@ -63,3 +63,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

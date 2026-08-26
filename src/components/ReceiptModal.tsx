@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import type { TxKind, WalletTransaction } from '@/types';
 import { money, mulberry32 } from '@/utils';
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles } from '@/theme';
 import logoApp from '@/assets/images/logo-app.png';
 
 /** Shared transaction-kind metadata (icon + colour + label). */
@@ -165,7 +165,7 @@ export function ReceiptModal({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(10,25,18,0.55)',
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     borderRadius: R.xl,
     padding: S.xl,
   },
@@ -257,3 +257,5 @@ const styles = StyleSheet.create({
   },
   doneBtnText: { color: C.ink, fontFamily: F.sans, fontSize: 13.5, fontWeight: '700' },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { C, F, R, S } from '@/theme';
+import { C, F, R, S, registerStyles } from '@/theme';
 
 type Tone = 'green' | 'red' | 'dark' | 'light';
 
@@ -36,7 +36,7 @@ export function QuickAction({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   wrap: { flex: 1, alignItems: 'center', gap: 7 },
   circle: {
     width: 50,
@@ -52,3 +52,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

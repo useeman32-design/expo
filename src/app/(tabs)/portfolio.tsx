@@ -11,7 +11,7 @@ import { Donut, DonutLegend } from '@/components/Donut';
 import { useStore } from '@/store';
 import { getLogo } from '@/services/logos';
 import { getHoldings, getPortfolio } from '@/services/portfolio';
-import { C, F, R, S, SH } from '@/theme';
+import { C, F, R, S, SH, registerStyles, STATUSBAR } from '@/theme';
 import { money, pct } from '@/utils';
 
 export default function PortfolioScreen() {
@@ -27,7 +27,7 @@ export default function PortfolioScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 110 }}>
         <ScreenHeader
           title="Portfolio"
@@ -159,7 +159,7 @@ export default function PortfolioScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   ordersBtn: {
     flexDirection: 'row',
@@ -257,3 +257,5 @@ const styles = StyleSheet.create({
     marginTop: S.md,
   },
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });

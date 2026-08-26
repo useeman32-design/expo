@@ -17,7 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Card, ScreenHeader } from '@/components/primitives';
 import { useKyc } from '@/kyc';
 import { KYC_TIERS, validateBvn, validateNin, validatePhone } from '@/services/kyc';
-import { C, F, R, S, SH } from '@/theme';
+import { C, F, R, S, SH, registerStyles, STATUSBAR } from '@/theme';
 
 type Phase = 'overview' | 'bvn' | 'nin' | 'document';
 
@@ -61,7 +61,7 @@ export default function KycScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <StatusBar style={STATUSBAR} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
           <ScreenHeader
@@ -325,7 +325,7 @@ export default function KycScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = () => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.canvas },
   cancelBtn: { paddingHorizontal: 12, paddingVertical: 6 },
   cancelText: { color: C.muted, fontFamily: F.sans, fontSize: 14, fontWeight: '600' },
@@ -448,3 +448,5 @@ const styles = StyleSheet.create({
   privacyLink: { color: C.green, fontWeight: '600' },
   cardShadow: SH.card,
 });
+let styles = makeStyles();
+registerStyles(() => { styles = makeStyles(); });
