@@ -168,10 +168,19 @@ export default function StockDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* BUY / SELL bar */}
+      {/* BUY / AUTO / SELL bar */}
       <View style={styles.actionBar}>
         <BuySellButton label="BUY" tone="green" onPress={() => setTrade({ open: true, side: 'Buy' })} />
-        <View style={{ width: 12 }} />
+        <View style={{ width: 10 }} />
+        <Pressable
+          onPress={() => router.push('/rules' as never)}
+          style={({ pressed }) => [styles.autoBtn, pressed && { opacity: 0.75 }]}
+          accessibilityLabel="Create an auto-trade rule for this stock"
+        >
+          <Ionicons name="flash" size={15} color={C.green} />
+          <Text style={styles.autoText}>AUTO</Text>
+        </Pressable>
+        <View style={{ width: 10 }} />
         <BuySellButton label="SELL" tone="red" onPress={() => setTrade({ open: true, side: 'Sell' })} />
       </View>
 
@@ -249,4 +258,17 @@ const styles = StyleSheet.create({
   actionBar: { position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', paddingHorizontal: S.xl, paddingTop: S.md, paddingBottom: 24, backgroundColor: 'rgba(244,246,245,0.96)' },
   bsBtn: { flex: 1, paddingVertical: 16, borderRadius: R.md, alignItems: 'center' },
   bsText: { color: C.white, fontFamily: F.sans, fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
+  autoBtn: {
+    flex: 0.62,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    backgroundColor: C.greenTint,
+    borderWidth: 1.5,
+    borderColor: C.green,
+    borderRadius: R.md,
+    paddingVertical: 15,
+  },
+  autoText: { color: C.green, fontFamily: F.sans, fontSize: 14, fontWeight: '800', letterSpacing: 0.5 },
 });

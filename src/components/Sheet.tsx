@@ -228,6 +228,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: R.xxl,
     paddingHorizontal: S.xl,
     paddingTop: 10,
+    maxHeight: '92%',
     ...SH.float,
   },
   handle: {

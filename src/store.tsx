@@ -9,7 +9,7 @@ import {
 } from 'react';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Holding, Order, PriceAlert } from '@/types';
+import type { Holding, Order, PriceAlert, TradeRule } from '@/types';
 import { getStock } from '@/services/marketData';
 import { HOLDINGS } from '@/services/portfolio';
 import { ORDERS } from '@/services/orders';
@@ -38,6 +38,11 @@ interface StoreValue {
   addAlert: (stockId: string, target: number, direction: 'above' | 'below') => ActionResult;
   removeAlert: (id: string) => void;
   toggleAlert: (id: string) => void;
+  /** auto-trade rules (persisted) */
+  rules: TradeRule[];
+  addRule: (r: Omit<TradeRule, 'id' | 'createdAt' | 'active'>) => ActionResult;
+  removeRule: (id: string) => void;
+  toggleRule: (id: string) => void;
   buy: (stockId: string, qty: number, price: number) => ActionResult;
   sell: (stockId: string, qty: number, price: number) => ActionResult;
   deposit: (amount: number) => ActionResult;
@@ -50,6 +55,7 @@ const StoreContext = createContext<StoreValue | null>(null);
 let toastId = 0;
 const KEY_WATCH = '@stocksx/watchlist';
 const KEY_ALERTS = '@stocksx/alerts';
+const KEY_RULES = '@stocksx/rules';
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [cash, setCash] = useState(PORTFOLIO.cash);
@@ -58,17 +64,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<Toast | null>(null);
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
+  const [rules, setRules] = useState<TradeRule[]>([]);
 
   // restore + persist watchlist & alerts
   useEffect(() => {
     (async () => {
       try {
-        const [w, a] = await Promise.all([
+        const [w, a, rl] = await Promise.all([
           AsyncStorage.getItem(KEY_WATCH),
           AsyncStorage.getItem(KEY_ALERTS),
+          AsyncStorage.getItem(KEY_RULES),
         ]);
         if (w) setWatchlist(JSON.parse(w) as string[]);
         if (a) setAlerts(JSON.parse(a) as PriceAlert[]);
+        if (rl) setRules(JSON.parse(rl) as TradeRule[]);
       } catch {
         /* ignore */
       }
@@ -121,6 +130,43 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return { ok: true, msg: 'Alert created' };
     },
     [alerts, notify],
+  );
+
+  const persistRules = (list: TradeRule[]) => {
+    setRules(list);
+    AsyncStorage.setItem(KEY_RULES, JSON.stringify(list)).catch(() => undefined);
+  };
+
+  const addRule = useCallback(
+    (r: Omit<TradeRule, 'id' | 'createdAt' | 'active'>): ActionResult => {
+      if (!(r.qty > 0)) return { ok: false, msg: 'Enter a quantity' };
+      if (!(r.price > 0)) return { ok: false, msg: 'Enter a trigger price' };
+      if (r.side === 'Buy' && r.qty * r.price > cash)
+        return { ok: false, msg: 'Cost exceeds your available cash' };
+      const rule: TradeRule = {
+        ...r,
+        id: `ru-${Date.now()}`,
+        active: true,
+        createdAt: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+      };
+      persistRules([rule, ...rules]);
+      notify(
+        `Auto-trade armed · ${r.side} ${r.qty} ${r.ticker} when ${r.trigger === 'above' ? 'above' : 'below'} ₦${r.price.toLocaleString()}`,
+      );
+      return { ok: true, msg: 'Rule created' };
+    },
+    [rules, cash, notify],
+  );
+
+  const removeRule = useCallback(
+    (id: string) => persistRules(rules.filter((r) => r.id !== id)),
+    [rules],
+  );
+
+  const toggleRule = useCallback(
+    (id: string) =>
+      persistRules(rules.map((r) => (r.id === id ? { ...r, active: !r.active } : r))),
+    [rules],
   );
 
   const removeAlert = useCallback(
@@ -229,12 +275,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       cash, holdings, orders, toast,
       watchlist, toggleWatch,
       alerts, addAlert, removeAlert, toggleAlert,
+      rules, addRule, removeRule, toggleRule,
       buy, sell, deposit, withdraw, clearToast,
     }),
     [
       cash, holdings, orders, toast,
       watchlist, toggleWatch,
       alerts, addAlert, removeAlert, toggleAlert,
+      rules, addRule, removeRule, toggleRule,
       buy, sell, deposit, withdraw, clearToast,
     ],
   );

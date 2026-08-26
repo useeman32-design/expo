@@ -199,3 +199,25 @@ export interface FaqItem {
   a: string;
   category: 'Account' | 'Trading' | 'Payments' | 'Security' | 'Sharia';
 }
+
+/* ================= Auto-trade rules ================= */
+
+/**
+ * A user-defined conditional trade: when the stock price crosses the trigger,
+ * the platform places the order automatically (market order at next available
+ * price). Buy entries below a price behave like resting limit orders on NGX;
+ * sell triggers act as stop-loss / take-profit.
+ */
+export interface TradeRule {
+  id: string;
+  stockId: string;
+  ticker: string;
+  name: string;
+  side: OrderSide;
+  trigger: 'above' | 'below';
+  price: number;
+  qty: number;
+  active: boolean;
+  createdAt: string;
+  lastTriggered?: string;
+}

@@ -142,8 +142,8 @@ export function TransferSheet({
 
       {isDeposit ? (
         <>
-          <Text style={[styles.fieldLabel, { marginTop: S.md }]}>Method</Text>
-          <View style={{ gap: 8, marginTop: 4 }}>
+          <Text style={[styles.fieldLabel, { marginTop: S.sm + 2 }]}>Method</Text>
+          <View style={{ gap: 6, marginTop: 2 }}>
             {DEPOSIT_METHODS.map((m) => {
               const active = method === m.title;
               return (
@@ -169,8 +169,8 @@ export function TransferSheet({
         </>
       ) : (
         <>
-          <Text style={[styles.fieldLabel, { marginTop: S.md }]}>To bank account</Text>
-          <View style={{ gap: 8, marginTop: 4 }}>
+          <Text style={[styles.fieldLabel, { marginTop: S.sm + 2 }]}>To bank account</Text>
+          <View style={{ gap: 6, marginTop: 2 }}>
             {BANK_ACCOUNTS.map((a) => {
               const active = account === a.id;
               return (
@@ -215,7 +215,7 @@ export function TransferSheet({
         )}
       </View>
 
-      <View style={{ marginTop: S.md }}>
+      <View style={{ marginTop: S.sm + 2 }}>
         <Button
           label={isDeposit ? 'Deposit funds' : 'Withdraw funds'}
           variant={isDeposit ? 'primary' : 'danger'}
@@ -235,9 +235,10 @@ const styles = StyleSheet.create({
   balanceBox: {
     backgroundColor: C.canvas,
     borderRadius: R.lg,
-    padding: S.lg,
+    paddingVertical: S.sm + 2,
+    paddingHorizontal: S.lg,
     alignItems: 'center',
-    marginBottom: S.md,
+    marginBottom: S.sm,
   },
   balanceLabel: {
     color: C.muted,
@@ -248,18 +249,18 @@ const styles = StyleSheet.create({
   balanceValue: {
     color: C.ink,
     fontFamily: F.mono,
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '800',
-    marginTop: 2,
+    marginTop: 1,
   },
-  limitRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8 },
-  limitText: { color: '#F6A623', fontFamily: F.sans, fontSize: 11.5, fontWeight: '600' },
+  limitRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 5 },
+  limitText: { color: '#F6A623', fontFamily: F.sans, fontSize: 11, fontWeight: '600' },
   fieldLabel: {
     color: C.muted,
     fontFamily: F.sans,
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 5,
   },
   amountBox: {
     flexDirection: 'row',
@@ -268,62 +269,63 @@ const styles = StyleSheet.create({
     backgroundColor: C.canvas,
     borderWidth: 1,
     borderColor: C.hairline,
-    borderRadius: R.lg,
-    height: 64,
+    borderRadius: R.md,
+    height: 54,
   },
-  naira: { color: C.muted, fontFamily: F.sans, fontSize: 22, fontWeight: '800', marginRight: 8 },
+  naira: { color: C.muted, fontFamily: F.sans, fontSize: 20, fontWeight: '800', marginRight: 8 },
   amountInput: {
     fontFamily: F.mono,
-    fontSize: 28,
+    fontSize: 23,
     fontWeight: '800',
     color: C.ink,
     minWidth: 120,
     textAlign: 'center',
   },
-  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 0, marginTop: 8 },
+  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 0, marginTop: 6 },
   methodCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 11,
+    gap: 10,
     borderWidth: 1,
     borderColor: C.hairline,
     borderRadius: R.md,
-    padding: S.md,
+    paddingVertical: 8,
+    paddingHorizontal: S.sm + 2,
     backgroundColor: C.white,
   },
   methodCardActive: { borderColor: C.green, backgroundColor: C.greenTint },
   methodIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 30,
+    height: 30,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  methodTitle: { color: C.ink, fontFamily: F.sans, fontSize: 13.5, fontWeight: '700' },
-  methodSub: { color: C.muted, fontFamily: F.sans, fontSize: 11, marginTop: 1 },
+  methodTitle: { color: C.ink, fontFamily: F.sans, fontSize: 13, fontWeight: '700' },
+  methodSub: { color: C.muted, fontFamily: F.sans, fontSize: 10.5, marginTop: 1 },
   radio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     borderWidth: 1.5,
     borderColor: C.hairline,
     alignItems: 'center',
     justifyContent: 'center',
   },
   radioActive: { borderColor: C.green },
-  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: C.green },
+  radioDot: { width: 9, height: 9, borderRadius: 4.5, backgroundColor: C.green },
   summary: {
     backgroundColor: C.canvas,
-    borderRadius: R.lg,
+    borderRadius: R.md,
     paddingHorizontal: S.lg,
-    paddingVertical: 4,
-    marginTop: S.md,
+    paddingVertical: 2,
+    marginTop: S.sm + 2,
   },
   demoNote: {
     color: C.faint,
     fontFamily: F.sans,
-    fontSize: 11,
+    fontSize: 10,
     textAlign: 'center',
-    marginTop: S.md,
+    marginTop: S.sm,
   },
 });

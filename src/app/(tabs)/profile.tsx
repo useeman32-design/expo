@@ -19,6 +19,7 @@ const MENU = [
   { icon: 'shield-checkmark-outline', label: 'KYC & Verification', color: '#F6A623', route: '/kyc' },
   { icon: 'cash-outline', label: 'Dividends', color: '#0E9F5E', route: '/dividends' },
   { icon: 'notifications-outline', label: 'Notifications', color: '#3DDC97', route: '/notifications' },
+  { icon: 'flash-outline', label: 'Auto-Trades', color: '#11A06B', route: '/rules' },
   { icon: 'bell-outline', label: 'Price Alerts', color: '#1F7AE0', route: '/alerts' },
   { icon: 'moon-outline', label: 'Sharia Screening', color: '#0A6B41', route: '/sharia' },
   { icon: 'gift-outline', label: 'Invite Friends', color: '#DD4B3E', route: '/referral' },
