@@ -9,7 +9,7 @@ import {
 } from 'react';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Holding, Order, PriceAlert, TradeRule } from '@/types';
+import type { Holding, Order, PriceAlert, TradeRule, WalletTransaction } from '@/types';
 import { getStock } from '@/services/marketData';
 import { HOLDINGS } from '@/services/portfolio';
 import { ORDERS } from '@/services/orders';
@@ -50,6 +50,8 @@ interface StoreValue {
   sell: (stockId: string, qty: number, price: number) => ActionResult;
   deposit: (amount: number) => ActionResult;
   withdraw: (amount: number) => ActionResult;
+  /** pay a bill (airtime/data/electricity/TV) from wallet cash */
+  payBill: (input: { provider: string; label: string; amount: number; reference: string }) => { ok: boolean; msg: string; tx?: WalletTransaction };
   clearToast: () => void;
   /** fire an app toast (used by campaign CTAs etc.) */
   notify: (text: string, tone?: Toast['tone']) => void;
@@ -283,6 +285,30 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [cash, notify],
   );
 
+  const payBill = useCallback(
+    (input: { provider: string; label: string; amount: number; reference: string }): { ok: boolean; msg: string; tx?: WalletTransaction } => {
+      const { provider, label, amount, reference } = input;
+      if (amount <= 0) return { ok: false, msg: 'Enter an amount' };
+      if (amount > cash) return { ok: false, msg: 'Amount exceeds cash balance' };
+      const balanceAfter = cash - amount;
+      setCash(balanceAfter);
+      const tx: WalletTransaction = {
+        id: `b-${Date.now()}`,
+        kind: 'bill',
+        amount: -amount,
+        balanceAfter,
+        method: provider,
+        reference,
+        note: label,
+        time: 'Just now',
+        status: 'Completed',
+      };
+      notify(`${label} paid · −₦${amount.toLocaleString()}`);
+      return { ok: true, msg: 'Paid', tx };
+    },
+    [cash, notify],
+  );
+
   const clearToast = useCallback(() => setToast(null), []);
 
   const value = useMemo<StoreValue>(
@@ -292,7 +318,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       balanceHidden, toggleBalanceHidden,
       alerts, addAlert, removeAlert, toggleAlert,
       rules, addRule, removeRule, toggleRule,
-      buy, sell, deposit, withdraw, clearToast, notify,
+      buy, sell, deposit, withdraw, payBill, clearToast, notify,
     }),
     [
       cash, holdings, orders, toast,
@@ -300,7 +326,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       balanceHidden, toggleBalanceHidden,
       alerts, addAlert, removeAlert, toggleAlert,
       rules, addRule, removeRule, toggleRule,
-      buy, sell, deposit, withdraw, clearToast, notify,
+      buy, sell, deposit, withdraw, payBill, clearToast, notify,
     ],
   );
 

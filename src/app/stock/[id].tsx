@@ -271,7 +271,7 @@ const makeStyles = () => StyleSheet.create({
   newsSource: { color: C.green, fontFamily: F.sans, fontSize: 12, fontWeight: '700' },
   newsDot: { color: C.faint },
   newsTime: { color: C.faint, fontFamily: F.sans, fontSize: 12 },
-  actionBar: { position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', paddingHorizontal: S.xl, paddingTop: S.md, paddingBottom: 24, backgroundColor: 'rgba(244,246,245,0.96)' },
+  actionBar: { position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', paddingHorizontal: S.xl, paddingTop: S.md, paddingBottom: 24, backgroundColor: C.surface, borderTopWidth: 1, borderTopColor: C.hairline },
   bsBtn: { flex: 1, paddingVertical: 16, borderRadius: R.md, alignItems: 'center' },
   bsText: { color: C.white, fontFamily: F.sans, fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
 });

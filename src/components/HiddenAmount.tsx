@@ -1,7 +1,6 @@
 import { createElement, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Svg, Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useAppearance } from '@/appearance';
@@ -12,11 +11,17 @@ import { money, type Currency } from '@/utils';
 /**
  * A money value that frosts over when the user hides their balances.
  *
- * The frost is a rounded glass pill that OVERSHOOTS the digits on every
- * side (so no number peeks out) and is made of a pure backdrop blur —
- * no opaque colour fill — plus a feathered white glass sheen and a
- * hairline rim. It reads as frosted glass floating over the balance,
- * not a coloured rectangle.
+ * The frost is rebuilt around the digits themselves:
+ *  - the patch is exactly the width of the number plus a slim margin,
+ *    so its length always follows the balance;
+ *  - a backdrop blur covers the WHOLE text box — every digit is inside
+ *    the full-strength region, nothing peeks out;
+ *  - the blur is feathered with a mask built from two linear gradients
+ *    (horizontal + vertical, intersected), so the edges dissolve away in
+ *    all directions and the corners fall off twice as fast — a soft,
+ *    rounded fog with no visible shape boundary;
+ *  - a faint white sheen rides on the same mask for the glass read.
+ *    No opaque colour fill anywhere.
  */
 export function HiddenAmount({
   value,
@@ -32,23 +37,25 @@ export function HiddenAmount({
   const dark = mode === 'dark';
   const [size, setSize] = useState({ w: 0, h: 0 });
 
-  // pill geometry — the patch overshoots the digits generously on every
-  // side; that padding ring is where the blur + sheen fade to nothing,
-  // so every digit sits inside the full-strength core
-  const padX = Math.max(18, Math.round(size.w * 0.14));
-  const padY = Math.max(6, Math.round(size.h * 0.18));
+  // patch geometry: digits + a slim margin on each side
+  const padX = Math.max(14, Math.round(size.w * 0.06));
+  const padY = Math.max(7, Math.round(size.h * 0.18));
   const W = size.w + padX * 2;
   const H = size.h + padY * 2;
-  const rx = Math.round(Math.min(H / 2, 18));
+  const rx = Math.round(Math.min(H / 2, 16));
 
-  // glass sheen strength per theme (feathered, no rim — edges must vanish)
-  const sheen = dark ? 0.16 : 0.38;
+  // feather widths — strictly inside the padding, so the digits always
+  // sit in the opaque core of the mask (full-strength blur)
+  const fx = Math.max(6, padX - 4);
+  const fy = Math.max(4, padY - 3);
+  const sheen = dark ? 0.14 : 0.35;
 
-  // the blur is feathered with a radial mask: fully applied over the text
-  // (core ~78%), dissolving to nothing at the patch boundary in every
-  // direction — no visible shape edge anywhere
-  const featherMask =
-    'radial-gradient(ellipse closest-side at 50% 50%, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 78%, rgba(0,0,0,0.55) 90%, rgba(0,0,0,0) 100%)';
+  // two edge-fades intersected => soft rounded rectangle: sides fade over
+  // fx/fy px, corners (where both fades apply) fall off faster still
+  const feather = [
+    `linear-gradient(to right, transparent 0px, #000 ${fx}px, #000 calc(100% - ${fx}px), transparent 100%)`,
+    `linear-gradient(to bottom, transparent 0px, #000 ${fy}px, #000 calc(100% - ${fy}px), transparent 100%)`,
+  ].join(', ');
 
   return (
     <View
@@ -65,46 +72,63 @@ export function HiddenAmount({
           style={{ position: 'absolute', left: -padX, top: -padY, width: W, height: H }}
           pointerEvents="none"
         >
-          {/* pure backdrop blur, feathered by a radial mask so the blur
-              itself fades out in every direction — tint-free on web
-              (expo-blur always paints a colour layer on web, which is
-              what made it look like a patch) */}
           {Platform.OS === 'web' ? (
-            createElement('div', {
-              style: {
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: W,
-                height: H,
-                borderRadius: rx, // graceful fallback if masks unsupported
-                backdropFilter: 'blur(18px) saturate(160%)',
-                WebkitBackdropFilter: 'blur(18px) saturate(160%)',
-                maskImage: featherMask,
-                WebkitMaskImage: featherMask,
-              },
-            })
+            <>
+              {/* the blur — pure backdrop-filter, no colour fill, feathered by the mask */}
+              {createElement('div', {
+                style: {
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: W,
+                  height: H,
+                  borderRadius: rx, // graceful fallback if masks unsupported
+                  backdropFilter: 'blur(16px) saturate(150%)',
+                  WebkitBackdropFilter: 'blur(16px) saturate(150%)',
+                  maskImage: feather,
+                  WebkitMaskImage: feather,
+                  maskComposite: 'intersect',
+                  WebkitMaskComposite: 'source-in',
+                },
+              })}
+              {/* the glass sheen — same mask, so it dissolves with the blur */}
+              {createElement('div', {
+                style: {
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: W,
+                  height: H,
+                  borderRadius: rx,
+                  backgroundColor: `rgba(255,255,255,${sheen})`,
+                  maskImage: feather,
+                  WebkitMaskImage: feather,
+                  maskComposite: 'intersect',
+                  WebkitMaskComposite: 'source-in',
+                },
+              })}
+            </>
           ) : (
-            <BlurView
-              intensity={40}
-              tint="default"
-              experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : undefined}
-              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: rx, overflow: 'hidden' }}
-            />
+            <>
+              <BlurView
+                intensity={40}
+                tint="default"
+                experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : undefined}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: rx, overflow: 'hidden' }}
+              />
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: rx,
+                  backgroundColor: `rgba(255,255,255,${sheen})`,
+                }}
+              />
+            </>
           )}
-
-          {/* feathered glass sheen — soft white glow that dissolves with the blur */}
-          <Svg width={W} height={H} style={{ position: 'absolute', top: 0, left: 0 }}>
-            <Defs>
-              <RadialGradient id="sx-frost-glass" cx="50%" cy="50%" r="50%">
-                <Stop offset="0%" stopColor="#FFFFFF" stopOpacity={sheen} />
-                <Stop offset="60%" stopColor="#FFFFFF" stopOpacity={sheen} />
-                <Stop offset="86%" stopColor="#FFFFFF" stopOpacity={sheen * 0.5} />
-                <Stop offset="100%" stopColor="#FFFFFF" stopOpacity={0} />
-              </RadialGradient>
-            </Defs>
-            <Rect x="0" y="0" width={W} height={H} rx={rx} fill="url(#sx-frost-glass)" />
-          </Svg>
         </View>
       ) : null}
     </View>

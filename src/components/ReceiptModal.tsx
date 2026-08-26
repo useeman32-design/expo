@@ -17,6 +17,7 @@ export const KIND_META: Record<TxKind, { icon: string; color: string; label: str
   dividend: { icon: 'cash-outline', color: '#7C5CFF', label: 'Dividend' },
   fee: { icon: 'receipt-outline', color: '#6C7771', label: 'Fees' },
   refund: { icon: 'refresh-outline', color: '#DD4B3E', label: 'Refund' },
+  bill: { icon: 'phone-portrait-outline', color: '#F6A623', label: 'Bill payment' },
 };
 
 /** Deterministic fake barcode drawn from the reference string. */

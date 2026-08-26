@@ -173,6 +173,15 @@ export default function HomeScreen() {
           <QuickAction label="Withdraw" icon="arrow-up" tone="dark" onPress={() => setTransfer({ open: true, mode: 'withdraw' })} />
         </View>
 
+        {/* ---------- BILL PAYMENTS ---------- */}
+        <Text style={styles.billsCaption}>PAY BILLS</Text>
+        <View style={styles.quickRow}>
+          <QuickAction label="Airtime" icon="phone-portrait-outline" tone="blue" onPress={() => router.push('/bills?cat=airtime' as never)} />
+          <QuickAction label="Data" icon="globe-outline" tone="violet" onPress={() => router.push('/bills?cat=data' as never)} />
+          <QuickAction label="Electricity" icon="flash-outline" tone="amber" onPress={() => router.push('/bills?cat=electricity' as never)} />
+          <QuickAction label="TV" icon="tv-outline" tone="dark" onPress={() => router.push('/bills?cat=tv' as never)} />
+        </View>
+
         {/* ---------- WATCHLIST ---------- */}
         <Section style={{ marginTop: S.xxxl }}>
           <SectionTitle title="My Watchlist" onAction={() => router.push('/markets')} />
@@ -375,6 +384,16 @@ const makeStyles = () => StyleSheet.create({
     paddingHorizontal: S.xl,
     marginTop: S.lg,
     gap: S.sm,
+  },
+  billsCaption: {
+    color: C.faint,
+    fontFamily: F.sans,
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    paddingHorizontal: S.xl,
+    marginTop: S.md,
+    marginBottom: -4,
   },
   indexRow: { flexDirection: 'row', gap: S.md },
   contRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },

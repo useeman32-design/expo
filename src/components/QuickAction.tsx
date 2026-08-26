@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { C, F, R, S, registerStyles } from '@/theme';
 
-type Tone = 'green' | 'red' | 'dark' | 'light';
+type Tone = 'green' | 'red' | 'dark' | 'light' | 'blue' | 'amber' | 'violet';
 
 export function QuickAction({
   label,
@@ -21,6 +21,9 @@ export function QuickAction({
     red: { bg: C.negative, fg: C.white },
     dark: { bg: C.dark, fg: C.white },
     light: { bg: C.canvasAlt, fg: C.ink },
+    blue: { bg: '#1F7AE0', fg: C.white },
+    amber: { bg: '#F6A623', fg: C.white },
+    violet: { bg: '#7C5CFF', fg: C.white },
   };
   const t = map[tone];
   return (

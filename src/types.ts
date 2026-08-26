@@ -137,7 +137,8 @@ export type TxKind =
   | 'sell'
   | 'dividend'
   | 'fee'
-  | 'refund';
+  | 'refund'
+  | 'bill';
 
 export interface WalletTransaction {
   id: string;
