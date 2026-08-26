@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { createElement, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Svg, Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
@@ -12,27 +12,37 @@ import { money, type Currency } from '@/utils';
 /**
  * A money value that frosts over when the user hides their balances.
  *
- * The frost is a rounded blur patch inset over the digits, veiled by an
- * elliptical radial gradient that is fully opaque at the centre and fades to
- * nothing in every direction — so the patch has no visible shape or edge,
- * it simply dissolves into the card (the mature fintech treatment).
+ * The frost is a rounded glass pill that OVERSHOOTS the digits on every
+ * side (so no number peeks out) and is made of a pure backdrop blur —
+ * no opaque colour fill — plus a feathered white glass sheen and a
+ * hairline rim. It reads as frosted glass floating over the balance,
+ * not a coloured rectangle.
  */
 export function HiddenAmount({
   value,
   currency = '₦',
   style,
-  intensity = 18,
 }: {
   value: number;
   currency?: Currency;
   style?: StyleProp<TextStyle>;
-  intensity?: number;
 }) {
   const { balanceHidden } = useStore();
   const { mode } = useAppearance();
   const dark = mode === 'dark';
   const [size, setSize] = useState({ w: 0, h: 0 });
-  const scrim = dark ? '#0B0F0D' : '#F4F6F5';
+
+  // pill geometry — the patch always extends past the text so every
+  // digit sits well inside the blurred region
+  const padX = Math.max(10, Math.round(size.w * 0.05));
+  const padY = Math.max(4, Math.round(size.h * 0.12));
+  const W = size.w + padX * 2;
+  const H = size.h + padY * 2;
+  const rx = Math.round(Math.min(H / 2, 18));
+
+  // glass sheen strength + rim opacity per theme
+  const sheen = dark ? 0.16 : 0.38;
+  const rim = dark ? 0.2 : 0.7;
 
   return (
     <View
@@ -45,39 +55,55 @@ export function HiddenAmount({
     >
       <Text style={style}>{money(value, currency)}</Text>
       {balanceHidden && size.w > 0 ? (
-        <View style={frostStyles.layer} pointerEvents="none">
-          {/* soft blur, inset and rounded — its edges sit under the dense
-              part of the radial veil so no hard boundary shows */}
-          <BlurView
-            intensity={intensity}
-            tint={dark ? 'dark' : 'light'}
-            experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : undefined}
-            style={[
-              frostStyles.blur,
-              {
-                marginHorizontal: Math.max(4, size.w * 0.07),
-                marginVertical: Math.max(1, size.h * 0.06),
-                borderRadius: Math.min(14, size.h / 2),
+        <View
+          style={{ position: 'absolute', left: -padX, top: -padY, width: W, height: H }}
+          pointerEvents="none"
+        >
+          {/* pure backdrop blur — tint-free on web (expo-blur always paints
+              a colour layer on web, which is what made it look like a patch) */}
+          {Platform.OS === 'web' ? (
+            createElement('div', {
+              style: {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: W,
+                height: H,
+                borderRadius: rx,
+                backdropFilter: 'blur(18px) saturate(160%)',
+                WebkitBackdropFilter: 'blur(18px) saturate(160%)',
               },
-            ]}
-          />
-          {/* elliptical veil: opaque centre → transparent at every edge */}
-          <Svg width={size.w} height={size.h} style={frostStyles.svg}>
+            })
+          ) : (
+            <BlurView
+              intensity={40}
+              tint="default"
+              experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : undefined}
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: rx, overflow: 'hidden' }}
+            />
+          )}
+
+          {/* feathered glass sheen + hairline rim */}
+          <Svg width={W} height={H} style={{ position: 'absolute', top: 0, left: 0 }}>
             <Defs>
-              <RadialGradient id="sx-frost-veil" cx="50%" cy="50%" r="50%">
-                <Stop offset="0%" stopColor={scrim} stopOpacity={0.98} />
-                <Stop offset="45%" stopColor={scrim} stopOpacity={0.95} />
-                <Stop offset="72%" stopColor={scrim} stopOpacity={0.75} />
-                <Stop offset="100%" stopColor={scrim} stopOpacity={0} />
+              <RadialGradient id="sx-frost-glass" cx="50%" cy="50%" r="50%">
+                <Stop offset="0%" stopColor="#FFFFFF" stopOpacity={sheen} />
+                <Stop offset="60%" stopColor="#FFFFFF" stopOpacity={sheen} />
+                <Stop offset="86%" stopColor="#FFFFFF" stopOpacity={sheen * 0.5} />
+                <Stop offset="100%" stopColor="#FFFFFF" stopOpacity={0} />
               </RadialGradient>
             </Defs>
+            <Rect x="0" y="0" width={W} height={H} rx={rx} fill="url(#sx-frost-glass)" />
             <Rect
-              x="0"
-              y="0"
-              width={size.w}
-              height={size.h}
-              rx={Math.min(16, size.h / 2)}
-              fill="url(#sx-frost-veil)"
+              x="0.5"
+              y="0.5"
+              width={W - 1}
+              height={H - 1}
+              rx={Math.max(0, rx - 0.5)}
+              fill="none"
+              stroke="#FFFFFF"
+              strokeOpacity={rim}
+              strokeWidth={1}
             />
           </Svg>
         </View>
@@ -126,21 +152,5 @@ export function BalanceEyeButton({ light = false }: { light?: boolean }) {
 }
 
 const frostStyles = StyleSheet.create({
-  layer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  blur: {
-    flex: 1,
-    overflow: 'hidden',
-  },
-  svg: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-  },
   btn: { padding: 4 },
 });
