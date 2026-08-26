@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 
@@ -6,6 +6,7 @@ import { C, F } from '@/theme';
 import { StoreProvider } from '@/store';
 import { AuthProvider, useAuth } from '@/auth';
 import { KycProvider } from '@/kyc';
+import { initLiveMarket, LIVE_ENABLED } from '@/services/liveMarket';
 import { Toast } from '@/components/Toast';
 
 // Web typography: self-hosted variable fonts (public/fonts), matching the
@@ -65,9 +66,26 @@ function Splash() {
 
 function RootNavigator() {
   const { ready, onboarded, user } = useAuth();
+  const [marketReady, setMarketReady] = useState(!LIVE_ENABLED);
   useProtectedRoute(ready, onboarded, user);
 
-  if (!ready) return <Splash />;
+  // load live NGX prices (when enabled) before first render; fall back to
+  // demo data on any failure so the app never blocks
+  useEffect(() => {
+    if (!LIVE_ENABLED) return;
+    let mounted = true;
+    const timeout = setTimeout(() => mounted && setMarketReady(true), 9000);
+    initLiveMarket().finally(() => {
+      clearTimeout(timeout);
+      if (mounted) setMarketReady(true);
+    });
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+    };
+  }, []);
+
+  if (!ready || !marketReady) return <Splash />;
 
   return (
     <Stack

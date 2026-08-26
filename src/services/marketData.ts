@@ -420,6 +420,40 @@ const SEEDS: StockSeed[] = [
 
 export const STOCKS: Stock[] = SEEDS.map(mk);
 
+/* ---------------- live-data hooks (see liveMarket.ts) ---------------- */
+
+/**
+ * Patch an existing stock in place with live values (keeps object identity so
+ * screens holding references re-render with fresh numbers).
+ */
+export function patchStock(id: string, live: Stock): void {
+  const idx = STOCKS.findIndex((s) => s.id === id);
+  if (idx === -1) return;
+  const cur = STOCKS[idx]!;
+  STOCKS[idx] = {
+    ...cur,
+    price: live.price,
+    prevClose: live.prevClose,
+    changePct: live.changePct,
+    changeAbs: live.changeAbs,
+    open: live.open,
+    high: live.high,
+    low: live.low,
+    volume: live.volume,
+    sector: live.sector,
+    name: live.name,
+    spark: live.spark,
+  };
+}
+
+/** Append newly discovered stocks (mutates so getStocks() sees them). */
+export function appendStocks(extra: Stock[]): void {
+  const known = new Set(STOCKS.map((s) => s.id));
+  for (const s of extra) {
+    if (!known.has(s.id)) STOCKS.push(s);
+  }
+}
+
 export const INDICES: MarketIndex[] = [
   {
     id: 'asi',
