@@ -51,6 +51,8 @@ interface StoreValue {
   deposit: (amount: number) => ActionResult;
   withdraw: (amount: number) => ActionResult;
   clearToast: () => void;
+  /** fire an app toast (used by campaign CTAs etc.) */
+  notify: (text: string, tone?: Toast['tone']) => void;
 }
 
 const StoreContext = createContext<StoreValue | null>(null);
@@ -290,7 +292,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       balanceHidden, toggleBalanceHidden,
       alerts, addAlert, removeAlert, toggleAlert,
       rules, addRule, removeRule, toggleRule,
-      buy, sell, deposit, withdraw, clearToast,
+      buy, sell, deposit, withdraw, clearToast, notify,
     }),
     [
       cash, holdings, orders, toast,
@@ -298,7 +300,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       balanceHidden, toggleBalanceHidden,
       alerts, addAlert, removeAlert, toggleAlert,
       rules, addRule, removeRule, toggleRule,
-      buy, sell, deposit, withdraw, clearToast,
+      buy, sell, deposit, withdraw, clearToast, notify,
     ],
   );
 

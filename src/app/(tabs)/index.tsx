@@ -27,6 +27,8 @@ import { IndexCard } from '@/components/IndexCard';
 import { LearnCard } from '@/components/LearnCard';
 import { QuickAction } from '@/components/QuickAction';
 import { TransferSheet } from '@/components/TransferSheet';
+import { PromoCarousel } from '@/components/PromoCarousel';
+import { PROMOTIONS } from '@/services/promotions';
 import { BalanceEyeButton, HiddenAmount, HiddenStars } from '@/components/HiddenAmount';
 import { useStore } from '@/store';
 import { getStock } from '@/services/marketData';
@@ -170,6 +172,11 @@ export default function HomeScreen() {
           <QuickAction label="Deposit" icon="arrow-down" tone="dark" onPress={() => setTransfer({ open: true, mode: 'deposit' })} />
           <QuickAction label="Withdraw" icon="arrow-up" tone="dark" onPress={() => setTransfer({ open: true, mode: 'withdraw' })} />
         </View>
+
+        {/* ---------- PROMO BANNERS (campaigns carousel) ---------- */}
+        <Section style={{ marginTop: S.xxl }}>
+          <PromoCarousel promos={PROMOTIONS} />
+        </Section>
 
         {/* ---------- WATCHLIST ---------- */}
         <Section style={{ marginTop: S.xxxl }}>
