@@ -173,11 +173,6 @@ export default function HomeScreen() {
           <QuickAction label="Withdraw" icon="arrow-up" tone="dark" onPress={() => setTransfer({ open: true, mode: 'withdraw' })} />
         </View>
 
-        {/* ---------- PROMO BANNERS (campaigns carousel) ---------- */}
-        <Section style={{ marginTop: S.xxl }}>
-          <PromoCarousel promos={PROMOTIONS} />
-        </Section>
-
         {/* ---------- WATCHLIST ---------- */}
         <Section style={{ marginTop: S.xxxl }}>
           <SectionTitle title="My Watchlist" onAction={() => router.push('/markets')} />
@@ -196,6 +191,11 @@ export default function HomeScreen() {
               <IndexCard key={ix.id} index={ix} />
             ))}
           </View>
+        </Section>
+
+        {/* ---------- PROMO BANNERS (campaigns carousel) ---------- */}
+        <Section style={{ marginTop: S.xxl }}>
+          <PromoCarousel promos={PROMOTIONS} />
         </Section>
 
         {/* ---------- LEARN & GROW ---------- */}
