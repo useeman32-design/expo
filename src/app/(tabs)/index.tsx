@@ -27,7 +27,7 @@ import { IndexCard } from '@/components/IndexCard';
 import { LearnCard } from '@/components/LearnCard';
 import { QuickAction } from '@/components/QuickAction';
 import { TransferSheet } from '@/components/TransferSheet';
-import { BalanceEyeButton, HiddenAmount } from '@/components/HiddenAmount';
+import { BalanceEyeButton, HiddenAmount, HiddenStars } from '@/components/HiddenAmount';
 import { useStore } from '@/store';
 import { getStock } from '@/services/marketData';
 import { getIndices } from '@/services/marketData';
@@ -119,7 +119,7 @@ export default function HomeScreen() {
                   <Text style={styles.whitePillText}>{pct(portfolio.todayPct)}</Text>
                 </View>
                 <Text style={styles.heroChangeText}>
-                  {money(portfolio.todayPl)} Today
+                  {store.balanceHidden ? `${pct(portfolio.todayPct)} Today` : `${money(portfolio.todayPl)} Today`}
                 </Text>
               </View>
             </View>
@@ -148,13 +148,13 @@ export default function HomeScreen() {
           <View style={styles.bridgeRow}>
             <View style={styles.bridgeCol}>
               <Text style={styles.bridgeLabel}>Buying Power</Text>
-              <HiddenAmount value={portfolio.cash} style={styles.bridgeValue} />
+              <HiddenStars value={portfolio.cash} style={styles.bridgeValue} />
             </View>
             <View style={styles.bridgeDivider} />
             <View style={styles.bridgeCol}>
               <Text style={styles.bridgeLabel}>Today’s P/L</Text>
               <Text style={[styles.bridgeValue, { color: upToday ? C.positive : C.negative }]}>
-                {money(portfolio.todayPl)}
+                {store.balanceHidden ? pct(portfolio.todayPct) : money(portfolio.todayPl)}
               </Text>
               <Text style={[styles.bridgeSub, { color: upTodayPct ? C.positive : C.negative }]}>
                 {pct(portfolio.todayPct)}

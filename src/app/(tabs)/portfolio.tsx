@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Button, Card, ChangePill, ScreenHeader, SectionTitle, Stat, StockLogo } from '@/components/primitives';
 import { TransferSheet } from '@/components/TransferSheet';
-import { BalanceEyeButton, HiddenAmount } from '@/components/HiddenAmount';
+import { BalanceEyeButton, HiddenAmount, HiddenStars } from '@/components/HiddenAmount';
 import { Donut, DonutLegend } from '@/components/Donut';
 import { useStore } from '@/store';
 import { getLogo } from '@/services/logos';
@@ -64,7 +64,7 @@ export default function PortfolioScreen() {
             <View style={styles.grid}>
               <Stat
                 label="Total Return"
-                value={money(p.totalReturn)}
+                value={store.balanceHidden ? pct(p.totalReturnPct) : money(p.totalReturn)}
                 valueColor={p.totalReturn >= 0 ? C.positive : C.negative}
               />
               <View style={styles.gridLine} />
@@ -81,11 +81,11 @@ export default function PortfolioScreen() {
               </View>
             </View>
             <View style={[styles.grid, { marginTop: S.lg }]}>
-              <Stat label="Cash Balance" value={money(store.cash)} />
+              <Stat label="Cash Balance" value={store.balanceHidden ? '₦****' : money(store.cash)} />
               <View style={styles.gridLine} />
               <View>
                 <Text style={styles.miniLabel}>Buying Power</Text>
-                <Text style={styles.miniValue}>{money(store.cash)}</Text>
+                <HiddenStars value={store.cash} style={styles.miniValue} />
               </View>
             </View>
           </Card>
@@ -109,7 +109,7 @@ export default function PortfolioScreen() {
                 color: h.color,
               }))}
               centerLabel="Invested"
-              centerValue={money(holdings.reduce((a, h) => a + h.value, 0))}
+              centerValue={store.balanceHidden ? '₦****' : money(holdings.reduce((a, h) => a + h.value, 0))}
             />
             <DonutLegend
               slices={holdings.map((h) => ({
@@ -142,7 +142,7 @@ export default function PortfolioScreen() {
                     </Text>
                   </View>
                   <View style={{ alignItems: 'flex-end', gap: 2 }}>
-                    <Text style={styles.hValue}>{money(h.value)}</Text>
+                    <HiddenStars value={h.value} style={styles.hValue} />
                     <Text style={[styles.hPl, { color: up ? C.positive : C.negative }]}>
                       {pct(h.plPct)}
                     </Text>

@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 
 import { Card, ScreenHeader } from '@/components/primitives';
 import { KIND_META, ReceiptModal } from '@/components/ReceiptModal';
-import { BalanceEyeButton, HiddenAmount } from '@/components/HiddenAmount';
+import { BalanceEyeButton, HiddenAmount, HiddenStars } from '@/components/HiddenAmount';
 import { useStore } from '@/store';
 import { TRANSACTIONS } from '@/services/wallet';
 import { money } from '@/utils';
@@ -58,12 +58,12 @@ export default function WalletScreen() {
               <View style={styles.miniStat}>
                 <Ionicons name="arrow-down" size={13} color={C.green} />
                 <Text style={styles.miniStatLabel}>In</Text>
-                <Text style={[styles.miniStatValue, { color: C.green }]}>{money(monthIn)}</Text>
+                <HiddenStars value={monthIn} style={[styles.miniStatValue, { color: C.green }]} />
               </View>
               <View style={styles.miniStat}>
                 <Ionicons name="arrow-up" size={13} color={C.negative} />
                 <Text style={styles.miniStatLabel}>Out</Text>
-                <Text style={[styles.miniStatValue, { color: C.negative }]}>{money(monthOut)}</Text>
+                <HiddenStars value={monthOut} style={[styles.miniStatValue, { color: C.negative }]} />
               </View>
             </View>
             <View style={styles.actionRow}>
