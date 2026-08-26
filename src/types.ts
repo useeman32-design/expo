@@ -150,6 +150,8 @@ export interface WalletTransaction {
   note?: string;
   ticker?: string;
   time: string;
+  /** epoch ms — used for month/range filtering and reports */
+  ts: number;
   status: 'Completed' | 'Pending' | 'Failed';
 }
 

@@ -102,6 +102,8 @@ function RootNavigator() {
       <Stack.Screen name="stock/[id]" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="promo/[id]" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="bills/[cat]" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="transactions" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="report" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="lesson/[id]" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="orders" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />

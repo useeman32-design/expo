@@ -42,6 +42,29 @@ export const BANK_ACCOUNTS: BankAccount[] = [
   },
 ];
 
+/**
+ * Dated ledger entries (mock) spread across the last ~5 months so month
+ * filters and range reports have real data to slice.
+ */
+const ago = (days: number, h = 10, m = 0): number => {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  d.setHours(h, m, 0, 0);
+  return d.getTime();
+};
+
+const fmt = (ts: number): string => {
+  const d = new Date(ts);
+  const clock = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const today = new Date();
+  const isToday = d.toDateString() === today.toDateString();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  if (isToday) return `Today, ${clock}`;
+  if (d.toDateString() === yesterday.toDateString()) return `Yesterday, ${clock}`;
+  return `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}, ${clock}`;
+};
+
 export const TRANSACTIONS: WalletTransaction[] = [
   {
     id: 'tx1',
@@ -50,7 +73,8 @@ export const TRANSACTIONS: WalletTransaction[] = [
     balanceAfter: 482_450.2,
     method: 'Card · Paystack',
     reference: 'PSK-8H2K91XM',
-    time: 'Today, 10:42 AM',
+    ts: ago(0, 10, 42),
+    time: fmt(ago(0, 10, 42)),
     status: 'Completed',
   },
   {
@@ -62,7 +86,8 @@ export const TRANSACTIONS: WalletTransaction[] = [
     reference: 'SX-ORD-8841',
     note: '200 × MTNN @ ₦275.00',
     ticker: 'MTNN',
-    time: 'Today, 11:24 AM',
+    ts: ago(0, 11, 24),
+    time: fmt(ago(0, 11, 24)),
     status: 'Completed',
   },
   {
@@ -74,7 +99,8 @@ export const TRANSACTIONS: WalletTransaction[] = [
     reference: 'SX-FEE-8841',
     note: 'Commission + NGX fees',
     ticker: 'MTNN',
-    time: 'Today, 11:24 AM',
+    ts: ago(0, 11, 25),
+    time: fmt(ago(0, 11, 25)),
     status: 'Completed',
   },
   {
@@ -86,7 +112,8 @@ export const TRANSACTIONS: WalletTransaction[] = [
     reference: 'NGX-DIV-2291',
     note: '₦2.50 per share · 7,400 shares',
     ticker: 'BUACEMENT',
-    time: 'Yesterday, 08:00 AM',
+    ts: ago(1, 8, 0),
+    time: fmt(ago(1, 8, 0)),
     status: 'Completed',
   },
   {
@@ -96,7 +123,8 @@ export const TRANSACTIONS: WalletTransaction[] = [
     balanceAfter: 381_707.7,
     method: 'Bank transfer · GTBank',
     reference: 'TRF-77120B',
-    time: '22 Aug, 04:15 PM',
+    ts: ago(4, 16, 15),
+    time: fmt(ago(4, 16, 15)),
     status: 'Completed',
   },
   {
@@ -108,7 +136,8 @@ export const TRANSACTIONS: WalletTransaction[] = [
     reference: 'SX-ORD-8799',
     note: '1,200 × GTCO @ ₦53.00',
     ticker: 'GTCO',
-    time: '21 Aug, 01:02 PM',
+    ts: ago(5, 13, 2),
+    time: fmt(ago(5, 13, 2)),
     status: 'Completed',
   },
   {
@@ -118,7 +147,8 @@ export const TRANSACTIONS: WalletTransaction[] = [
     balanceAfter: 343_107.7,
     method: 'USSD · Flutterwave',
     reference: 'FLW-33KD19',
-    time: '20 Aug, 09:33 AM',
+    ts: ago(6, 9, 33),
+    time: fmt(ago(6, 9, 33)),
     status: 'Completed',
   },
   {
@@ -130,7 +160,8 @@ export const TRANSACTIONS: WalletTransaction[] = [
     reference: 'SX-ORD-8712',
     note: '2,000 × JAIZBANK @ ₦6.40',
     ticker: 'JAIZBANK',
-    time: '20 Aug, 11:30 AM',
+    ts: ago(6, 11, 30),
+    time: fmt(ago(6, 11, 30)),
     status: 'Completed',
   },
   {
@@ -141,10 +172,171 @@ export const TRANSACTIONS: WalletTransaction[] = [
     method: 'Card · Paystack',
     reference: 'PSK-2M88B1',
     note: 'Failed gateway charge reversed',
-    time: '18 Aug, 07:21 PM',
+    ts: ago(8, 19, 21),
+    time: fmt(ago(8, 19, 21)),
+    status: 'Completed',
+  },
+  {
+    id: 'tx10',
+    kind: 'dividend',
+    amount: 9_200,
+    balanceAfter: 346_107.7,
+    method: 'Corporate action',
+    reference: 'NGX-DIV-2255',
+    note: '₦0.80 per share · 11,500 shares',
+    ticker: 'ZENITHBANK',
+    ts: ago(15, 9, 5),
+    time: fmt(ago(15, 9, 5)),
+    status: 'Completed',
+  },
+  {
+    id: 'tx11',
+    kind: 'buy',
+    amount: -47_500,
+    balanceAfter: 336_907.7,
+    method: 'Market order',
+    reference: 'SX-ORD-8604',
+    note: '500 × DANGSUGAR @ ₦95.00',
+    ticker: 'DANGSUGAR',
+    ts: ago(22, 11, 12),
+    time: fmt(ago(22, 11, 12)),
+    status: 'Completed',
+  },
+  {
+    id: 'tx12',
+    kind: 'deposit',
+    amount: 150_000,
+    balanceAfter: 384_407.7,
+    method: 'Bank transfer · Monnify',
+    reference: 'MNF-99120A',
+    ts: ago(29, 8, 47),
+    time: fmt(ago(29, 8, 47)),
+    status: 'Completed',
+  },
+  {
+    id: 'tx13',
+    kind: 'sell',
+    amount: 82_000,
+    balanceAfter: 416_407.7,
+    method: 'Market order',
+    reference: 'SX-ORD-8511',
+    note: '400 × BUACEMENT @ ₦205.00',
+    ticker: 'BUACEMENT',
+    ts: ago(36, 14, 8),
+    time: fmt(ago(36, 14, 8)),
+    status: 'Completed',
+  },
+  {
+    id: 'tx14',
+    kind: 'withdrawal',
+    amount: -60_000,
+    balanceAfter: 356_407.7,
+    method: 'Bank transfer · GTBank',
+    reference: 'TRF-66210C',
+    ts: ago(44, 12, 30),
+    time: fmt(ago(44, 12, 30)),
+    status: 'Completed',
+  },
+  {
+    id: 'tx15',
+    kind: 'buy',
+    amount: -120_000,
+    balanceAfter: 236_407.7,
+    method: 'Market order',
+    reference: 'SX-ORD-8402',
+    note: '1,000 × GTCO @ ₦120.00',
+    ticker: 'GTCO',
+    ts: ago(52, 10, 15),
+    time: fmt(ago(52, 10, 15)),
+    status: 'Completed',
+  },
+  {
+    id: 'tx16',
+    kind: 'dividend',
+    amount: 26_400,
+    balanceAfter: 262_807.7,
+    method: 'Corporate action',
+    reference: 'NGX-DIV-2188',
+    note: '₦1.20 per share · 22,000 shares',
+    ticker: 'MTNN',
+    ts: ago(63, 9, 0),
+    time: fmt(ago(63, 9, 0)),
+    status: 'Completed',
+  },
+  {
+    id: 'tx17',
+    kind: 'deposit',
+    amount: 200_000,
+    balanceAfter: 462_807.7,
+    method: 'Card · Paystack',
+    reference: 'PSK-5T11K09',
+    ts: ago(74, 15, 22),
+    time: fmt(ago(74, 15, 22)),
+    status: 'Completed',
+  },
+  {
+    id: 'tx18',
+    kind: 'fee',
+    amount: -1_620,
+    balanceAfter: 461_187.7,
+    method: 'Trade commission 1.35%',
+    reference: 'SX-FEE-8402',
+    note: 'Commission + NGX fees',
+    ticker: 'GTCO',
+    ts: ago(74, 15, 23),
+    time: fmt(ago(74, 15, 23)),
+    status: 'Completed',
+  },
+  {
+    id: 'tx19',
+    kind: 'sell',
+    amount: 96_500,
+    balanceAfter: 378_707.7,
+    method: 'Market order',
+    reference: 'SX-ORD-8288',
+    note: '700 × ZENITHBANK @ ₦27.00',
+    ticker: 'ZENITHBANK',
+    ts: ago(88, 11, 45),
+    time: fmt(ago(88, 11, 45)),
+    status: 'Completed',
+  },
+  {
+    id: 'tx20',
+    kind: 'withdrawal',
+    amount: -40_000,
+    balanceAfter: 338_707.7,
+    method: 'Bank transfer · GTBank',
+    reference: 'TRF-44102D',
+    ts: ago(102, 10, 10),
+    time: fmt(ago(102, 10, 10)),
+    status: 'Completed',
+  },
+  {
+    id: 'tx21',
+    kind: 'deposit',
+    amount: 80_000,
+    balanceAfter: 418_707.7,
+    method: 'USSD · Flutterwave',
+    reference: 'FLW-77B3D1',
+    ts: ago(118, 9, 18),
+    time: fmt(ago(118, 9, 18)),
+    status: 'Completed',
+  },
+  {
+    id: 'tx22',
+    kind: 'buy',
+    amount: -65_000,
+    balanceAfter: 353_707.7,
+    method: 'Market order',
+    reference: 'SX-ORD-8102',
+    note: '250 × BUACEMENT @ ₦260.00',
+    ticker: 'BUACEMENT',
+    ts: ago(133, 13, 55),
+    time: fmt(ago(133, 13, 55)),
     status: 'Completed',
   },
 ];
+
 
 /** Deposit channels the production gateways expose. */
 export const DEPOSIT_METHODS = [

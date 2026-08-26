@@ -293,6 +293,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           balanceAfter,
           method: 'Wallet',
           reference: `SX-DEP-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+          ts: Date.now(),
           time: 'Just now',
           status: 'Completed',
         },
@@ -318,6 +319,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           balanceAfter,
           method: 'Wallet',
           reference: `SX-WIT-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+          ts: Date.now(),
           time: 'Just now',
           status: 'Completed',
         },
@@ -344,6 +346,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         method: provider,
         reference,
         note: label,
+        ts: Date.now(),
         time: 'Just now',
         status: 'Completed',
       };

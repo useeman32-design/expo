@@ -115,7 +115,7 @@ export default function HomeScreen() {
                 <BalanceEyeButton light />
                 <View style={{ flex: 1 }} />
                 <Pressable
-                  onPress={() => router.push('/wallet')}
+                  onPress={() => router.push('/transactions' as never)}
                   hitSlop={8}
                   accessibilityLabel="View transactions history"
                   accessibilityRole="button"
@@ -129,7 +129,7 @@ export default function HomeScreen() {
               <View style={styles.heroChangeRow}>
                 <View style={[styles.whitePill, !upTodayPct && styles.whitePillDown]}>
                   <Ionicons name={upTodayPct ? 'caret-up' : 'caret-down'} size={11} color={C.white} />
-                  <Text style={styles.whitePillText}>{store.balanceHidden ? '****' : pct(portfolio.todayPct)}</Text>
+                  <Text style={styles.whitePillText}>{pct(portfolio.todayPct)}</Text>
                 </View>
                 <Text style={styles.heroChangeText}>
                   {store.balanceHidden ? '₦**** Today' : `${money(portfolio.todayPl)} Today`}
@@ -137,7 +137,7 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            <View style={{ marginTop: 14, marginBottom: 30 }}>
+            <View style={{ marginTop: 14, marginBottom: 48 }}>
               <Chart
                 data={heroSpark}
                 width={Dimensions.get('window').width - S.xl * 2}
@@ -167,7 +167,7 @@ export default function HomeScreen() {
             <View style={styles.bridgeCol}>
               <Text style={styles.bridgeLabel}>Today’s P/L</Text>
               <Text style={[styles.bridgeValue, { color: upToday ? C.positive : C.negative }]}>
-                {store.balanceHidden ? pct(portfolio.todayPct) : money(portfolio.todayPl)}
+                {store.balanceHidden ? '₦****' : money(portfolio.todayPl)}
               </Text>
               <Text style={[styles.bridgeSub, { color: upTodayPct ? C.positive : C.negative }]}>
                 {pct(portfolio.todayPct)}
