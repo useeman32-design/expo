@@ -11,6 +11,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Holding, Order, PriceAlert, TradeRule, WalletTransaction } from '@/types';
 import { getStock } from '@/services/marketData';
+import { hapticError, hapticSuccess } from '@/utils/haptics';
 import { HOLDINGS } from '@/services/portfolio';
 import { ORDERS } from '@/services/orders';
 import { PORTFOLIO } from '@/services/portfolio';
@@ -55,6 +56,16 @@ interface StoreValue {
   clearToast: () => void;
   /** fire an app toast (used by campaign CTAs etc.) */
   notify: (text: string, tone?: Toast['tone']) => void;
+}
+
+/** wrap a money action so success/failure fire device haptics (iOS Taptic / Android vibration) */
+function withHaptics<A extends unknown[], R extends { ok: boolean }>(fn: (...args: A) => R): (...args: A) => R {
+  return (...args: A) => {
+    const r = fn(...args);
+    if (r.ok) hapticSuccess();
+    else hapticError();
+    return r;
+  };
 }
 
 const StoreContext = createContext<StoreValue | null>(null);
@@ -198,7 +209,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const buy = useCallback(
-    (stockId: string, qty: number, price: number): ActionResult => {
+    withHaptics((stockId: string, qty: number, price: number): ActionResult => {
       if (qty <= 0) return { ok: false, msg: 'Enter a quantity' };
       const cost = qty * price;
       if (cost > cash) return { ok: false, msg: 'Insufficient buying power' };
@@ -228,12 +239,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setOrders((o) => [order, ...o]);
       notify(`Bought ${qty} share${qty > 1 ? 's' : ''} · ₦${cost.toLocaleString()}`);
       return { ok: true, msg: 'Order filled' };
-    },
+    }),
     [cash, notify],
   );
 
   const sell = useCallback(
-    (stockId: string, qty: number, price: number): ActionResult => {
+    withHaptics((stockId: string, qty: number, price: number): ActionResult => {
       if (qty <= 0) return { ok: false, msg: 'Enter a quantity' };
       const existing = holdings.find((h) => h.stockId === stockId);
       if (!existing || existing.shares < qty)
@@ -260,33 +271,33 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setOrders((o) => [order, ...o]);
       notify(`Sold ${qty} share${qty > 1 ? 's' : ''} · +₦${proceeds.toLocaleString()}`);
       return { ok: true, msg: 'Order filled' };
-    },
+    }),
     [holdings, notify],
   );
 
   const deposit = useCallback(
-    (amount: number): ActionResult => {
+    withHaptics((amount: number): ActionResult => {
       if (amount <= 0) return { ok: false, msg: 'Enter an amount' };
       setCash((c) => c + amount);
       notify(`Deposit successful · +₦${amount.toLocaleString()}`);
       return { ok: true, msg: 'Deposited' };
-    },
+    }),
     [notify],
   );
 
   const withdraw = useCallback(
-    (amount: number): ActionResult => {
+    withHaptics((amount: number): ActionResult => {
       if (amount <= 0) return { ok: false, msg: 'Enter an amount' };
       if (amount > cash) return { ok: false, msg: 'Amount exceeds cash balance' };
       setCash((c) => c - amount);
       notify(`Withdrawal successful · -₦${amount.toLocaleString()}`, 'info');
       return { ok: true, msg: 'Withdrawn' };
-    },
+    }),
     [cash, notify],
   );
 
   const payBill = useCallback(
-    (input: { provider: string; label: string; amount: number; reference: string }): { ok: boolean; msg: string; tx?: WalletTransaction } => {
+    withHaptics((input: { provider: string; label: string; amount: number; reference: string }): { ok: boolean; msg: string; tx?: WalletTransaction } => {
       const { provider, label, amount, reference } = input;
       if (amount <= 0) return { ok: false, msg: 'Enter an amount' };
       if (amount > cash) return { ok: false, msg: 'Amount exceeds cash balance' };
@@ -305,7 +316,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       };
       notify(`${label} paid · −₦${amount.toLocaleString()}`);
       return { ok: true, msg: 'Paid', tx };
-    },
+    }),
     [cash, notify],
   );
 

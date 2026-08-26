@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { C, F, R, S, registerStyles } from '@/theme';
 
-type Tone = 'green' | 'red' | 'dark' | 'light' | 'blue' | 'amber' | 'violet';
+type Tone = 'green' | 'red' | 'dark' | 'light' | 'airtime' | 'data' | 'electricity' | 'tv';
 
 export function QuickAction({
   label,
@@ -21,9 +21,10 @@ export function QuickAction({
     red: { bg: C.negative, fg: C.white },
     dark: { bg: C.dark, fg: C.white },
     light: { bg: C.canvasAlt, fg: C.ink },
-    blue: { bg: '#1F7AE0', fg: C.white },
-    amber: { bg: '#F6A623', fg: C.white },
-    violet: { bg: '#7C5CFF', fg: C.white },
+    airtime: { bg: 'rgba(31,122,224,0.14)', fg: '#3E8DEF' },
+    data: { bg: 'rgba(124,92,255,0.15)', fg: '#8F76FF' },
+    electricity: { bg: 'rgba(246,166,35,0.16)', fg: '#EFA528' },
+    tv: { bg: 'rgba(224,72,62,0.14)', fg: '#E4685E' },
   };
   const t = map[tone];
   return (

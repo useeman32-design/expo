@@ -121,7 +121,7 @@ export default function HomeScreen() {
                   <Text style={styles.whitePillText}>{pct(portfolio.todayPct)}</Text>
                 </View>
                 <Text style={styles.heroChangeText}>
-                  {store.balanceHidden ? `${pct(portfolio.todayPct)} Today` : `${money(portfolio.todayPl)} Today`}
+                  {store.balanceHidden ? '₦**** Today' : `${money(portfolio.todayPl)} Today`}
                 </Text>
               </View>
             </View>
@@ -176,10 +176,10 @@ export default function HomeScreen() {
         {/* ---------- BILL PAYMENTS ---------- */}
         <Text style={styles.billsCaption}>PAY BILLS</Text>
         <View style={styles.quickRow}>
-          <QuickAction label="Airtime" icon="phone-portrait-outline" tone="blue" onPress={() => router.push('/bills?cat=airtime' as never)} />
-          <QuickAction label="Data" icon="globe-outline" tone="violet" onPress={() => router.push('/bills?cat=data' as never)} />
-          <QuickAction label="Electricity" icon="flash-outline" tone="amber" onPress={() => router.push('/bills?cat=electricity' as never)} />
-          <QuickAction label="TV" icon="tv-outline" tone="dark" onPress={() => router.push('/bills?cat=tv' as never)} />
+          <QuickAction label="Airtime" icon="phone-portrait-outline" tone="airtime" onPress={() => router.push('/bills/airtime' as never)} />
+          <QuickAction label="Data" icon="globe-outline" tone="data" onPress={() => router.push('/bills/data' as never)} />
+          <QuickAction label="Electricity" icon="flash-outline" tone="electricity" onPress={() => router.push('/bills/electricity' as never)} />
+          <QuickAction label="TV" icon="tv-outline" tone="tv" onPress={() => router.push('/bills/tv' as never)} />
         </View>
 
         {/* ---------- WATCHLIST ---------- */}

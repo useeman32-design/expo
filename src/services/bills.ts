@@ -5,6 +5,21 @@
  * wiring (PrestaPay / vTPass-style) happens on the backend later.
  */
 
+import airtelLogo from '@/assets/bills/airtel.png';
+import dstvLogo from '@/assets/bills/dstv.png';
+import gotvLogo from '@/assets/bills/gotv.png';
+import ibedcLogo from '@/assets/bills/ibedc.png';
+import aedcLogo from '@/assets/bills/aedc.png';
+import ekoLogo from '@/assets/bills/eko.png';
+import gloLogo from '@/assets/bills/glo.png';
+import ikejaLogo from '@/assets/bills/ikeja.png';
+import kedcoLogo from '@/assets/bills/kedco.png';
+import mtnLogo from '@/assets/bills/mtn.png';
+import phedLogo from '@/assets/bills/phed.png';
+import showmaxLogo from '@/assets/bills/showmax.png';
+import startimesLogo from '@/assets/bills/startimes.png';
+import nmobileLogo from '@/assets/bills/9mobile.png';
+
 export type BillCategory = 'airtime' | 'data' | 'electricity' | 'tv';
 
 export interface BillProvider {
@@ -12,11 +27,15 @@ export interface BillProvider {
   name: string;
   /** short hint under the provider name (network colour, coverage…) */
   tag?: string;
+  /** brand logo (bundled asset) */
+  logo?: unknown;
 }
 
 export interface BillCategoryMeta {
   id: BillCategory;
   label: string;
+  /** title of this category's dedicated screen */
+  screenTitle: string;
   tagline: string;
   icon: string;
   accent: string;
@@ -32,16 +51,17 @@ export interface BillCategoryMeta {
 }
 
 const TELCOS: BillProvider[] = [
-  { id: 'mtn', name: 'MTN', tag: 'Yellow network' },
-  { id: 'airtel', name: 'Airtel', tag: 'Smart red' },
-  { id: 'glo', name: 'Glo', tag: 'Grand data' },
-  { id: '9mobile', name: '9mobile', tag: 'Care network' },
+  { id: 'mtn', name: 'MTN', tag: 'Yellow network', logo: mtnLogo },
+  { id: 'airtel', name: 'Airtel', tag: 'Smart red', logo: airtelLogo },
+  { id: 'glo', name: 'Glo', tag: 'Grand data', logo: gloLogo },
+  { id: '9mobile', name: '9mobile', tag: 'Care network', logo: nmobileLogo },
 ];
 
 export const BILL_CATEGORIES: BillCategoryMeta[] = [
   {
     id: 'airtime',
     label: 'Airtime',
+    screenTitle: 'Buy Airtime',
     tagline: 'Top up any line, instantly',
     icon: 'phone-portrait-outline',
     accent: '#1F7AE0',
@@ -56,6 +76,7 @@ export const BILL_CATEGORIES: BillCategoryMeta[] = [
   {
     id: 'data',
     label: 'Data',
+    screenTitle: 'Buy Data',
     tagline: 'Bundles for browsing',
     icon: 'globe-outline',
     accent: '#7C5CFF',
@@ -70,6 +91,7 @@ export const BILL_CATEGORIES: BillCategoryMeta[] = [
   {
     id: 'electricity',
     label: 'Electricity',
+    screenTitle: 'Pay Electricity',
     tagline: 'Pay your disco meter',
     icon: 'flash-outline',
     accent: '#F6A623',
@@ -80,17 +102,18 @@ export const BILL_CATEGORIES: BillCategoryMeta[] = [
     presets: [1000, 2000, 5000, 10000, 20000],
     min: 500,
     providers: [
-      { id: 'aedc', name: 'Abuja Electric', tag: 'AEDC' },
-      { id: 'ikedc', name: 'Ikeja Electric', tag: 'IKEDC' },
-      { id: 'ekedc', name: 'Eko Electric', tag: 'EKEDC' },
-      { id: 'phed', name: 'Port Harcourt', tag: 'PHED' },
-      { id: 'kaedco', name: 'Kano Electric', tag: 'KEDCO' },
-      { id: 'ibedc', name: 'Ibadan Electric', tag: 'IBEDC' },
+      { id: 'aedc', name: 'Abuja Electric', tag: 'AEDC', logo: aedcLogo },
+      { id: 'ikedc', name: 'Ikeja Electric', tag: 'IKEDC', logo: ikejaLogo },
+      { id: 'ekedc', name: 'Eko Electric', tag: 'EKEDC', logo: ekoLogo },
+      { id: 'phed', name: 'Port Harcourt', tag: 'PHED', logo: phedLogo },
+      { id: 'kaedco', name: 'Kano Electric', tag: 'KEDCO', logo: kedcoLogo },
+      { id: 'ibedc', name: 'Ibadan Electric', tag: 'IBEDC', logo: ibedcLogo },
     ],
   },
   {
     id: 'tv',
     label: 'TV',
+    screenTitle: 'TV Subscription',
     tagline: 'DStv, GOtv & more',
     icon: 'tv-outline',
     accent: '#E0483E',
@@ -101,10 +124,10 @@ export const BILL_CATEGORIES: BillCategoryMeta[] = [
     presets: [2000, 5000, 10000, 15000, 25000],
     min: 500,
     providers: [
-      { id: 'dstv', name: 'DStv', tag: 'MultiChoice' },
-      { id: 'gotv', name: 'GOtv', tag: 'MultiChoice' },
-      { id: 'startimes', name: 'Startimes', tag: 'Digital TV' },
-      { id: 'showmax', name: 'Showmax', tag: 'Streaming' },
+      { id: 'dstv', name: 'DStv', tag: 'MultiChoice', logo: dstvLogo },
+      { id: 'gotv', name: 'GOtv', tag: 'MultiChoice', logo: gotvLogo },
+      { id: 'startimes', name: 'Startimes', tag: 'Digital TV', logo: startimesLogo },
+      { id: 'showmax', name: 'Showmax', tag: 'Streaming', logo: showmaxLogo },
     ],
   },
 ];

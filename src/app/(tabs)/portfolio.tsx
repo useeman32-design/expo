@@ -64,7 +64,7 @@ export default function PortfolioScreen() {
             <View style={styles.grid}>
               <Stat
                 label="Total Return"
-                value={store.balanceHidden ? pct(p.totalReturnPct) : money(p.totalReturn)}
+                value={store.balanceHidden ? '****' : money(p.totalReturn)}
                 valueColor={p.totalReturn >= 0 ? C.positive : C.negative}
               />
               <View style={styles.gridLine} />

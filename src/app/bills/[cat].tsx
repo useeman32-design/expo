@@ -1,46 +1,87 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Button, Card, ScreenHeader } from '@/components/primitives';
-import { ReceiptModal } from '@/components/ReceiptModal';
 import { HiddenStars } from '@/components/HiddenAmount';
-import { BILL_CATEGORIES, getBillCategory, type BillCategory } from '@/services/bills';
+import { PaymentSim } from '@/components/PaymentSim';
+import { BILL_CATEGORIES, type BillCategoryMeta } from '@/services/bills';
 import { useStore } from '@/store';
-import type { WalletTransaction } from '@/types';
 import { C, F, R, S, STATUSBAR, registerStyles } from '@/theme';
 import { money } from '@/utils';
 
 /**
- * Pay bills from the wallet: airtime, data bundles, electricity meters and
- * TV subscriptions (OPay-style). Provider catalogue is local for now; the
- * payment debits wallet cash and issues a receipt. Live aggregator wiring
- * lands with the backend.
+ * Dedicated bill-payment screen per category (/bills/airtime, /bills/data,
+ * /bills/electricity, /bills/tv) — each with its own provider logos,
+ * account + amount entry, wallet funding summary and a live payment
+ * simulation on pay.
  */
-export default function BillsScreen() {
-  const { cat } = useLocalSearchParams<{ cat?: string }>();
-  const router = useRouter();
+
+/** brand logo in a white rounded tile (falls back to initials) */
+function BillLogo({ logo, name, size = 34 }: { logo?: unknown; name: string; size?: number }) {
+  const [err, setErr] = useState(false);
+  const show = !!logo && !err;
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size * 0.3,
+        backgroundColor: C.white,
+        borderColor: C.hairline,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+      }}
+    >
+      {show ? (
+        <Image
+          source={logo as never}
+          style={{ width: size - 8, height: size - 8 }}
+          contentFit="contain"
+          transition={120}
+          onError={() => setErr(true)}
+        />
+      ) : (
+        <Text style={{ color: C.ink, fontFamily: F.display, fontWeight: '800', fontSize: size * 0.36 }}>
+          {name.replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase()}
+        </Text>
+      )}
+    </View>
+  );
+}
+
+export default function BillCategoryScreen() {
+  const { cat } = useLocalSearchParams<{ cat: string }>();
   const { cash, payBill, notify } = useStore();
 
-  const [category, setCategory] = useState<BillCategory>(getBillCategory(cat).id);
+  const meta: BillCategoryMeta | undefined = BILL_CATEGORIES.find((c) => c.id === cat);
   const [providerId, setProviderId] = useState('');
   const [account, setAccount] = useState('');
   const [amountStr, setAmountStr] = useState('');
-  const [receipt, setReceipt] = useState<WalletTransaction | null>(null);
+  const [sim, setSim] = useState<{ amount: number; provider: string; reference: string; mask: string } | null>(null);
 
-  const meta = getBillCategory(category);
+  if (!meta) {
+    return (
+      <View style={styles.screen}>
+        <StatusBar style={STATUSBAR} />
+        <ScreenHeader title="Pay Bills" showBack />
+        <View style={{ padding: S.xl, marginTop: S.xxl, alignItems: 'center' }}>
+          <Ionicons name="alert-circle-outline" size={40} color={C.faint} />
+          <Text style={styles.missing}>This service is not available</Text>
+        </View>
+      </View>
+    );
+  }
+
   const provider = meta.providers.find((p) => p.id === providerId);
   const digits = account.replace(/\D/g, '');
   const amount = Number(amountStr.replace(/[^0-9.]/g, '')) || 0;
   const valid = !!provider && digits.length >= meta.fieldMinDigits && amount >= meta.min;
-
-  const switchCategory = (id: BillCategory) => {
-    if (id === category) return;
-    setCategory(id);
-    setProviderId('');
-  };
 
   const pay = () => {
     if (!provider) return notify('Choose a provider first', 'error');
@@ -57,66 +98,47 @@ export default function BillsScreen() {
       reference,
     });
     if (!res.ok) return notify(res.msg, 'error');
-    if (res.tx) setReceipt(res.tx);
+    const mask = digits.length > 4 ? `${digits.slice(0, 4)} ••• ${digits.slice(-4)}` : digits;
+    setSim({ amount, provider: provider.name, reference, mask });
     setAmountStr('');
   };
 
   return (
     <View style={styles.screen}>
       <StatusBar style={STATUSBAR} />
-      <ScreenHeader title="Pay Bills" subtitle="Airtime, data, electricity & TV" showBack />
+      <ScreenHeader title={meta.screenTitle} subtitle={meta.tagline} showBack />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ padding: S.xl, paddingBottom: 120 }}
       >
-        {/* category switcher */}
-        <View style={styles.catRow}>
-          {BILL_CATEGORIES.map((c) => {
-            const active = c.id === category;
+        {/* provider grid with brand logos */}
+        <Text style={styles.blockLabel}>SELECT PROVIDER</Text>
+        <View style={styles.providerGrid}>
+          {meta.providers.map((p) => {
+            const active = p.id === providerId;
             return (
               <Pressable
-                key={c.id}
-                onPress={() => switchCategory(c.id)}
-                style={({ pressed }) => [styles.catChip, active && styles.catChipActive, pressed && { opacity: 0.8 }]}
-                accessibilityLabel={`Switch to ${c.label}`}
+                key={p.id}
+                onPress={() => setProviderId(p.id)}
+                style={({ pressed }) => [styles.providerCard, active && { borderColor: meta.accent }, pressed && { opacity: 0.85 }]}
+                accessibilityLabel={`Select ${p.name}`}
               >
-                <Ionicons name={c.icon as never} size={15} color={active ? C.white : C.muted} />
-                <Text style={[styles.catChipText, active && styles.catChipTextActive]}>{c.label}</Text>
+                <View style={styles.providerTop}>
+                  <BillLogo logo={p.logo} name={p.name} />
+                  <View style={{ flex: 1 }} />
+                  <Ionicons
+                    name={active ? 'checkmark-circle' : 'ellipse-outline'}
+                    size={19}
+                    color={active ? meta.accent : C.faint}
+                  />
+                </View>
+                <Text style={[styles.providerName, active && { color: C.ink }]}>{p.name}</Text>
+                {p.tag ? <Text style={styles.providerTag}>{p.tag}</Text> : null}
               </Pressable>
             );
           })}
-        </View>
-
-        {/* provider grid */}
-        <View style={{ marginTop: S.lg }}>
-          <Text style={styles.blockLabel}>SELECT PROVIDER</Text>
-          <View style={styles.providerGrid}>
-            {meta.providers.map((p) => {
-              const active = p.id === providerId;
-              return (
-                <Pressable
-                  key={p.id}
-                  onPress={() => setProviderId(p.id)}
-                  style={({ pressed }) => [styles.providerCard, active && { borderColor: meta.accent }, pressed && { opacity: 0.85 }]}
-                  accessibilityLabel={`Select ${p.name}`}
-                >
-                  <View style={styles.providerTop}>
-                    <View style={[styles.providerDot, { backgroundColor: active ? meta.accent : C.faint }]} />
-                    <View style={{ flex: 1 }} />
-                    <Ionicons
-                      name={active ? 'checkmark-circle' : 'ellipse-outline'}
-                      size={19}
-                      color={active ? meta.accent : C.faint}
-                    />
-                  </View>
-                  <Text style={[styles.providerName, active && { color: C.ink }]}>{p.name}</Text>
-                  {p.tag ? <Text style={styles.providerTag}>{p.tag}</Text> : null}
-                </Pressable>
-              );
-            })}
-          </View>
         </View>
 
         {/* account + amount */}
@@ -198,7 +220,14 @@ export default function BillsScreen() {
         />
       </View>
 
-      <ReceiptModal tx={receipt} onClose={() => setReceipt(null)} />
+      <PaymentSim
+        visible={!!sim}
+        onClose={() => setSim(null)}
+        amount={sim?.amount ?? 0}
+        provider={sim?.provider ?? ''}
+        reference={sim?.reference ?? ''}
+        fieldMask={sim?.mask}
+      />
     </View>
   );
 }
@@ -206,22 +235,7 @@ export default function BillsScreen() {
 const makeStyles = () =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: C.canvas },
-    catRow: { flexDirection: 'row', gap: S.sm },
-    catChip: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 6,
-      paddingVertical: 10,
-      borderRadius: R.pill,
-      backgroundColor: C.canvasAlt,
-      borderWidth: 1,
-      borderColor: C.hairline,
-    },
-    catChipActive: { backgroundColor: C.green, borderColor: C.green },
-    catChipText: { color: C.muted, fontFamily: F.sans, fontSize: 12, fontWeight: '700' },
-    catChipTextActive: { color: C.white },
+    missing: { color: C.muted, fontFamily: F.sans, fontSize: 14, marginTop: S.md },
     blockLabel: { color: C.faint, fontFamily: F.sans, fontSize: 10.5, fontWeight: '800', letterSpacing: 1.1, marginBottom: S.md },
     providerGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: S.sm },
     providerCard: {
@@ -234,7 +248,6 @@ const makeStyles = () =>
       padding: S.md,
     },
     providerTop: { flexDirection: 'row', alignItems: 'center' },
-    providerDot: { width: 10, height: 10, borderRadius: 5 },
     providerName: { color: C.ink, fontFamily: F.sans, fontSize: 14.5, fontWeight: '700', marginTop: 10 },
     providerTag: { color: C.faint, fontFamily: F.sans, fontSize: 11.5, marginTop: 2 },
     fieldLabel: { color: C.faint, fontFamily: F.sans, fontSize: 10.5, fontWeight: '800', letterSpacing: 1.1, marginBottom: S.sm },
