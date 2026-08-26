@@ -11,6 +11,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Holding, Order, PriceAlert, TradeRule, WalletTransaction } from '@/types';
 import { getStock } from '@/services/marketData';
+import { TRANSACTIONS } from '@/services/wallet';
 import { hapticError, hapticSuccess } from '@/utils/haptics';
 import { HOLDINGS } from '@/services/portfolio';
 import { ORDERS } from '@/services/orders';
@@ -30,6 +31,8 @@ interface StoreValue {
   cash: number;
   holdings: Holding[];
   orders: Order[];
+  /** wallet transaction ledger (seeded, then grown by deposits/withdrawals/bills) */
+  txHistory: WalletTransaction[];
   toast: Toast | null;
   /** watchlist (persisted) */
   watchlist: string[];
@@ -80,6 +83,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [cash, setCash] = useState(PORTFOLIO.cash);
   const [holdings, setHoldings] = useState<Holding[]>(HOLDINGS.map((h) => ({ ...h })));
   const [orders, setOrders] = useState<Order[]>([...ORDERS]);
+  const [txHistory, setTxHistory] = useState<WalletTransaction[]>([...TRANSACTIONS]);
   const [toast, setToast] = useState<Toast | null>(null);
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
@@ -121,6 +125,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   };
 
   const notify = useCallback((text: string, tone: Toast['tone'] = 'success') => {
+    if (tone === 'error') hapticError(); // failed validations get their own buzz
     const t = { id: ++toastId, text, tone };
     setToast(t);
     setTimeout(() => {
@@ -278,18 +283,46 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const deposit = useCallback(
     withHaptics((amount: number): ActionResult => {
       if (amount <= 0) return { ok: false, msg: 'Enter an amount' };
-      setCash((c) => c + amount);
+      const balanceAfter = cash + amount;
+      setCash(balanceAfter);
+      setTxHistory((list) => [
+        {
+          id: `d-${Date.now()}`,
+          kind: 'deposit',
+          amount,
+          balanceAfter,
+          method: 'Wallet',
+          reference: `SX-DEP-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+          time: 'Just now',
+          status: 'Completed',
+        },
+        ...list,
+      ]);
       notify(`Deposit successful · +₦${amount.toLocaleString()}`);
       return { ok: true, msg: 'Deposited' };
     }),
-    [notify],
+    [cash, notify],
   );
 
   const withdraw = useCallback(
     withHaptics((amount: number): ActionResult => {
       if (amount <= 0) return { ok: false, msg: 'Enter an amount' };
       if (amount > cash) return { ok: false, msg: 'Amount exceeds cash balance' };
-      setCash((c) => c - amount);
+      const balanceAfter = cash - amount;
+      setCash(balanceAfter);
+      setTxHistory((list) => [
+        {
+          id: `w-${Date.now()}`,
+          kind: 'withdrawal',
+          amount: -amount,
+          balanceAfter,
+          method: 'Wallet',
+          reference: `SX-WIT-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+          time: 'Just now',
+          status: 'Completed',
+        },
+        ...list,
+      ]);
       notify(`Withdrawal successful · -₦${amount.toLocaleString()}`, 'info');
       return { ok: true, msg: 'Withdrawn' };
     }),
@@ -314,6 +347,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         time: 'Just now',
         status: 'Completed',
       };
+      setTxHistory((list) => [tx, ...list]);
       notify(`${label} paid · −₦${amount.toLocaleString()}`);
       return { ok: true, msg: 'Paid', tx };
     }),
@@ -324,7 +358,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<StoreValue>(
     () => ({
-      cash, holdings, orders, toast,
+      cash, holdings, orders, txHistory, toast,
       watchlist, toggleWatch,
       balanceHidden, toggleBalanceHidden,
       alerts, addAlert, removeAlert, toggleAlert,
@@ -332,7 +366,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       buy, sell, deposit, withdraw, payBill, clearToast, notify,
     }),
     [
-      cash, holdings, orders, toast,
+      cash, holdings, orders, txHistory, toast,
       watchlist, toggleWatch,
       balanceHidden, toggleBalanceHidden,
       alerts, addAlert, removeAlert, toggleAlert,

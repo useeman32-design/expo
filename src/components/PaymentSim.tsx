@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, Modal, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Animated, Modal, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Button } from '@/components/primitives';
 import { C, F, R, S, registerStyles } from '@/theme';
 import { money } from '@/utils';
 import { hapticSuccess } from '@/utils/haptics';
@@ -55,8 +54,11 @@ export function PaymentSim({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.card}>
+      <Pressable
+        style={styles.backdrop}
+        onPress={step === 3 ? onClose : undefined}
+      >
+        <Pressable style={styles.card} onPress={step === 3 ? onClose : undefined} disabled={step < 3}>
           {step < 3 ? (
             <>
               <View style={styles.spinnerWrap}>
@@ -102,12 +104,13 @@ export function PaymentSim({
                 <Text style={styles.refValue}>{reference}</Text>
               </View>
 
-              <View style={{ height: S.lg }} />
-              <Button label="Done" onPress={onClose} block />
+              <View style={styles.tapHintWrap}>
+                <Text style={styles.tapHint}>Tap anywhere to continue</Text>
+              </View>
             </>
           )}
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }
@@ -186,6 +189,15 @@ const makeStyles = () =>
     },
     refLabel: { color: C.muted, fontFamily: F.sans, fontSize: 12.5 },
     refValue: { color: C.ink2, fontFamily: F.sans, fontSize: 12.5, fontWeight: '700' },
+    tapHintWrap: {
+      marginTop: S.xl,
+      alignSelf: 'stretch',
+      alignItems: 'center',
+      paddingVertical: 9,
+      borderRadius: R.pill,
+      backgroundColor: C.canvasAlt,
+    },
+    tapHint: { color: C.muted, fontFamily: F.sans, fontSize: 12, fontWeight: '700' },
   });
 
 let styles = makeStyles();

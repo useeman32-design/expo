@@ -69,7 +69,7 @@ export default function BillCategoryScreen() {
     return (
       <View style={styles.screen}>
         <StatusBar style={STATUSBAR} />
-        <ScreenHeader title="Pay Bills" showBack />
+        <ScreenHeader title="Bills Payment" showBack />
         <View style={{ padding: S.xl, marginTop: S.xxl, alignItems: 'center' }}>
           <Ionicons name="alert-circle-outline" size={40} color={C.faint} />
           <Text style={styles.missing}>This service is not available</Text>

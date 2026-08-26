@@ -8,7 +8,6 @@ import { Card, ScreenHeader } from '@/components/primitives';
 import { KIND_META, ReceiptModal } from '@/components/ReceiptModal';
 import { BalanceEyeButton, HiddenAmount, HiddenStars } from '@/components/HiddenAmount';
 import { useStore } from '@/store';
-import { TRANSACTIONS } from '@/services/wallet';
 import { money } from '@/utils';
 import { C, F, R, S, registerStyles, STATUSBAR } from '@/theme';
 import type { TxKind, WalletTransaction } from '@/types';
@@ -25,20 +24,17 @@ const FILTERS: { id: 'all' | TxKind; label: string }[] = [
 
 export default function WalletScreen() {
   const router = useRouter();
-  const { cash } = useStore();
+  const { cash, txHistory } = useStore();
   const [filter, setFilter] = useState<'all' | TxKind>('all');
   const [receipt, setReceipt] = useState<WalletTransaction | null>(null);
 
   const rows = useMemo<WalletTransaction[]>(() => {
-    const merged = [
-      ...TRANSACTIONS,
-      // include the live (session) cash balance as the headline number
-    ];
-    return filter === 'all' ? merged : merged.filter((t) => t.kind === filter);
-  }, [filter]);
+    // live ledger from the store (seeded history + this session's activity)
+    return filter === 'all' ? txHistory : txHistory.filter((t) => t.kind === filter);
+  }, [filter, txHistory]);
 
-  const monthIn = TRANSACTIONS.filter((t) => t.amount > 0).reduce((a, t) => a + t.amount, 0);
-  const monthOut = TRANSACTIONS.filter((t) => t.amount < 0).reduce((a, t) => a + t.amount, 0);
+  const monthIn = txHistory.filter((t) => t.amount > 0).reduce((a, t) => a + t.amount, 0);
+  const monthOut = txHistory.filter((t) => t.amount < 0).reduce((a, t) => a + t.amount, 0);
 
   return (
     <View style={styles.screen}>

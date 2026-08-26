@@ -113,12 +113,23 @@ export default function HomeScreen() {
               <View style={styles.heroLabelRow}>
                 <Text style={styles.heroLabel}>Total Portfolio Value</Text>
                 <BalanceEyeButton light />
+                <View style={{ flex: 1 }} />
+                <Pressable
+                  onPress={() => router.push('/wallet')}
+                  hitSlop={8}
+                  accessibilityLabel="View transactions history"
+                  accessibilityRole="button"
+                  style={({ pressed }) => [styles.historyLink, pressed && { opacity: 0.7 }]}
+                >
+                  <Text style={styles.historyLinkText}>Transactions History</Text>
+                  <Ionicons name="chevron-forward" size={13} color="rgba(255,255,255,0.75)" />
+                </Pressable>
               </View>
               <HiddenAmount value={portfolio.totalValue} style={styles.heroValue} />
               <View style={styles.heroChangeRow}>
                 <View style={[styles.whitePill, !upTodayPct && styles.whitePillDown]}>
                   <Ionicons name={upTodayPct ? 'caret-up' : 'caret-down'} size={11} color={C.white} />
-                  <Text style={styles.whitePillText}>{pct(portfolio.todayPct)}</Text>
+                  <Text style={styles.whitePillText}>{store.balanceHidden ? '****' : pct(portfolio.todayPct)}</Text>
                 </View>
                 <Text style={styles.heroChangeText}>
                   {store.balanceHidden ? '₦**** Today' : `${money(portfolio.todayPl)} Today`}
@@ -174,7 +185,7 @@ export default function HomeScreen() {
         </View>
 
         {/* ---------- BILL PAYMENTS ---------- */}
-        <Text style={styles.billsCaption}>PAY BILLS</Text>
+        <Text style={styles.billsCaption}>BILLS PAYMENT</Text>
         <View style={styles.quickRow}>
           <QuickAction label="Airtime" icon="phone-portrait-outline" tone="airtime" onPress={() => router.push('/bills/airtime' as never)} />
           <QuickAction label="Data" icon="globe-outline" tone="data" onPress={() => router.push('/bills/data' as never)} />
@@ -317,6 +328,13 @@ const makeStyles = () => StyleSheet.create({
   },
   heroValueBlock: { gap: 6 },
   heroLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  historyLink: { flexDirection: 'row', alignItems: 'center', gap: 1, paddingVertical: 2 },
+  historyLinkText: {
+    color: 'rgba(255,255,255,0.75)',
+    fontFamily: F.sans,
+    fontSize: 11.5,
+    fontWeight: '600',
+  },
   heroLabel: {
     color: 'rgba(255,255,255,0.8)',
     fontFamily: F.sans,
