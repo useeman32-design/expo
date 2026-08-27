@@ -22,7 +22,7 @@ export const KIND_META: Record<TxKind, { icon: string; color: string; label: str
 };
 
 /** Deterministic fake barcode drawn from the reference string. */
-function Barcode({ seed }: { seed: string }) {
+export function Barcode({ seed }: { seed: string }) {
   const bars = useMemo(() => {
     let h = 0;
     for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
